@@ -7,6 +7,7 @@ import Home from "./app/home/Home";
 import CustomerList from "./app/customer/CustomerList";
 import ProductList from "./app/product/ProductList";
 import EnquiryList from "./app/enquiry/EnquiryList";
+import EnquiryCreate from "./app/enquiry/EnquiryCreate";
 
 
 const queryClient = new QueryClient()
@@ -27,6 +28,7 @@ function App() {
         <Route path="/products" element={<ProductList />} />
         {/* enquiry */}
         <Route path="/enquiries" element={<EnquiryList />} />
+        <Route path="/create-enquiries" element={<EnquiryCreate />} />
        
         
       </Routes>

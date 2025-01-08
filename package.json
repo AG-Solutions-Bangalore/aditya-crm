@@ -1,9 +1,8 @@
 {
-  "name": "template-shadcn",
+  "name": "aditya-spice",
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "homepage": "https://singleclik.com/user/",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
