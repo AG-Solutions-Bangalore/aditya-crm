@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { z } from "zod";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,8 +11,20 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { PlusCircle, MinusCircle, Settings2 } from "lucide-react";
+import {
+  Settings2,
+  Trash2,
+  PlusCircle,
+  MinusCircle,
+  Calendar,
+  Clock,
+  User,
+  FileText,
+  Globe2,
+  Building2,
+  Globe,
+  Loader2,
+} from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import Page from "../dashboard/page";
 import { useToast } from "@/hooks/use-toast";
@@ -23,143 +34,67 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useNavigate } from "react-router-dom";
-import { getTodayDate } from "@/utils/currentDate";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { useNavigate, useParams } from "react-router-dom";
 import { ProgressBar } from "@/components/spinner/ProgressBar";
-import CreateCustomer from "../customer/CreateCustomer";
-import CreateProduct from "../product/CreateProduct";
-
-// Validation Schemas
-const productRowSchema = z.object({
-  enquirySub_product_name: z.string().min(1, "Product name is required"),
-  enquirySub_product_code: z.string().optional(),
-  enquirySub_shu: z.number().min(1, "SHU is required"),
-  enquirySub_asta: z.number().min(1, "ASTA is required"),
-  enquirySub_qlty_type: z.string().min(1, "Quality type is required"),
-  enquirySub_stem_type: z.string().optional(),
-  enquirySub_course_type: z.string().min(1, "Course type is required"),
-  enquirySub_moist_value: z.string().optional(),
-  enquirySub_qnty: z.number().min(1, "Quantity is required"),
-  enquirySub_quoted_price: z.number().min(1, "Quoted price is required"),
-  enquirySub_final_price: z.string().optional(),
-  enquirySub_p2b_blend: z.string().optional(),
-});
-
-const enquiryFormSchema = z.object({
-  customer_id: z.string().min(1, "Customer is required"),
-  enquiry_date: z.string().min(1, "Enquiry date is required"),
-  packing_type: z.string().min(1, "Packing type is required"),
-  marking: z.string().min(1, "Marking is required"),
-  shipment_date: z.string().min(1, "Shipment date is required"),
-  sample_required: z.enum(["Yes", "No"]),
-  treatment_required: z.enum(["Yes", "No"]),
-  etd: z.enum(["Yes", "No"]).optional(),
-  gama_rediations: z.enum(["Yes", "No"]).optional(),
-  steam_sterlizaton: z.enum(["Yes", "No"]).optional(),
-  enquiry_data: z
-    .array(productRowSchema)
-    .min(1, "At least one product is required"),
-});
-
-// API functions
-const fetchCustomers = async () => {
-  const token = localStorage.getItem("token");
-  if (!token) throw new Error("No authentication token found");
-
-  const response = await fetch(
-    "https://adityaspice.com/app/public/api/panel-fetch-customer",
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-    }
-  );
-
-  if (!response.ok) throw new Error("Failed to fetch customer data");
-  return response.json();
-};
-
-const fetchProducts = async () => {
-  const token = localStorage.getItem("token");
-  if (!token) throw new Error("No authentication token found");
-
-  const response = await fetch(
-    "https://adityaspice.com/app/public/api/panel-fetch-product",
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-    }
-  );
-
-  if (!response.ok) throw new Error("Failed to fetch product data");
-  return response.json();
-};
-
-const createEnquiry = async (data) => {
-  const token = localStorage.getItem("token");
-  if (!token) throw new Error("No authentication token found");
-
-  const response = await fetch(
-    "https://adityaspice.com/app/public/api/panel-create-enquiry",
-    {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    }
-  );
-
-  if (!response.ok) throw new Error("Failed to create enquiry");
-  return response.json();
-};
 
 // Header Component
-const EnquiryHeader = ({ progress }) => {
+
+const EnquiryHeader = ({ enquiryDetails }) => {
   return (
     <div className="flex sticky top-0 z-10 border border-gray-200 rounded-lg justify-between items-start gap-8 mb-2 bg-white p-4 shadow-sm">
       <div className="flex-1">
-        <h1 className="text-3xl font-bold text-gray-800">Enquiry Form</h1>
-        <p className="text-gray-600 mt-2">Create your enquiries</p>
+        <div className="flex items-center gap-2">
+          <h1 className="text-3xl font-bold text-gray-800">Edit Enquiry</h1>
+
+          <span className="bg-yellow-100 text-yellow-800 text-sm font-medium px-2.5 py-0.5 rounded">
+            {enquiryDetails?.enquiry?.enquiry_status || "N/A"}
+          </span>
+        </div>
+        <div className="flex items-center gap-4 ">
+          <p className="text-gray-600 mt-2">Update your enquiry details</p>
+        </div>
       </div>
 
-      <div className="flex-1 pt-2">
-        <div className="sticky top-4">
-          <div className="flex justify-between mb-2">
-            <span className="text-sm font-medium">Basic Details</span>
-            <span className="text-sm font-medium">Products</span>
-            <span className="text-sm font-medium">Requirements</span>
-          </div>
+      <div className="flex-1 flex flex-col gap-3">
+        <div className="flex items-center justify-end gap-2 text-sm">
+          <Building2 className="h-4 w-4 text-yellow-500" />
+          <span>{enquiryDetails?.company?.company_name || "N/A"}</span>
+        </div>
+        <div className="flex items-center justify-end gap-2 text-sm">
+          <FileText className="h-4 w-4 text-yellow-500" />
+          <span className="font-medium">
+            Ref: {enquiryDetails?.enquiry?.enquiry_ref || "N/A"}
+          </span>
+        </div>
 
-          <div className="w-full bg-gray-100 h-3 rounded-full overflow-hidden">
-            <div
-              className="bg-yellow-500 h-full rounded-full transition-all duration-300 shadow-sm"
-              style={{ width: `${progress}%` }}
-            />
-          </div>
-
-          <div className="flex justify-between items-center mt-2">
-            <span className="text-sm font-medium text-gray-600">Progress</span>
-            <span className="text-sm font-medium text-yellow-600">
-              {progress}% Complete
-            </span>
-          </div>
+        <div className="flex items-center justify-end gap-2 text-sm">
+          <Globe className="h-4 w-4 text-yellow-500" />
+          <span className="font-medium">
+            Country: {enquiryDetails?.customer?.customer_country || "N/A"}
+          </span>
         </div>
       </div>
     </div>
   );
 };
-
-// Main Component
-const EnquiryCreate = () => {
+const EnquiryEdit = () => {
+  const { id } = useParams();
   const { toast } = useToast();
   const navigate = useNavigate();
   const [progress, setProgress] = useState(0);
 
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [deleteItemId, setDeleteItemId] = useState(null);
   const [visibleColumns, setVisibleColumns] = useState([
     "enquirySub_product_name",
     "enquirySub_shu",
@@ -188,27 +123,10 @@ const EnquiryCreate = () => {
     { key: "enquirySub_p2b_blend", label: "P2B Blend" },
   ];
 
-  const [enquiryData, setEnquiryData] = useState([
-    {
-      enquirySub_product_name: "",
-      enquirySub_product_code: "",
-      enquirySub_shu: "",
-      enquirySub_asta: "",
-      enquirySub_qlty_type: "",
-      enquirySub_stem_type: "",
-      enquirySub_course_type: "",
-      enquirySub_moist_value: "",
-      enquirySub_qnty: "",
-      enquirySub_quoted_price: "",
-      enquirySub_final_price: "",
-      enquirySub_p2b_blend: "",
-    },
-  ]);
-
+  const [enquiryData, setEnquiryData] = useState([]);
   const [formData, setFormData] = useState({
-    enquiry_year: "",
     customer_id: "",
-    enquiry_date: getTodayDate(),
+    enquiry_date: "",
     packing_type: "",
     marking: "",
     shipment_date: "",
@@ -217,24 +135,129 @@ const EnquiryCreate = () => {
     etd: "No",
     gama_rediations: "No",
     steam_sterlizaton: "No",
+    enquiry_status: "",
   });
 
+  const packingTypes = ["5 Kg", "10 Kg", "15 Kg", "20 Kg", "25 Kg"];
+  const statusOptions = [
+    "Enquiry Received",
+    "New Enquiry",
+    "Order Cancel",
+    "Order Closed",
+    "Order Confirmed",
+    "Order Delivered",
+    "Order Progress",
+    "Order Shipped",
+    "Quotation",
+  ];
+
+  // Fetch Enquiry Data
+  const { data: enquiryDetails ,isLoading,isError,refetch} = useQuery({
+    queryKey: ["enquiry", id],
+    queryFn: async () => {
+      const token = localStorage.getItem("token");
+      const response = await fetch(
+        `https://adityaspice.com/app/public/api/panel-fetch-enquiry-by-id/${id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      if (!response.ok) throw new Error("Failed to fetch enquiry");
+      return response.json();
+    },
+  });
+
+  // Fetch Customers
   const { data: customerData } = useQuery({
     queryKey: ["customers"],
-    queryFn: fetchCustomers,
+    queryFn: async () => {
+      const token = localStorage.getItem("token");
+      const response = await fetch(
+        "https://adityaspice.com/app/public/api/panel-fetch-customer",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      if (!response.ok) throw new Error("Failed to fetch customers");
+      return response.json();
+    },
   });
 
+  // Fetch Products
   const { data: productData } = useQuery({
     queryKey: ["products"],
-    queryFn: fetchProducts,
+    queryFn: async () => {
+      const token = localStorage.getItem("token");
+      const response = await fetch(
+        "https://adityaspice.com/app/public/api/panel-fetch-product",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      if (!response.ok) throw new Error("Failed to fetch products");
+      return response.json();
+    },
   });
 
-  const createEnquiryMutation = useMutation({
-    mutationFn: createEnquiry,
+  // Delete Product Row Mutation
+  const deleteProductMutation = useMutation({
+    mutationFn: async (productId) => {
+      const token = localStorage.getItem("token");
+      const response = await fetch(
+        `https://adityaspice.com/app/public/api/panel-delete-enquirySub/${productId}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      if (!response.ok) throw new Error("Failed to delete product");
+      return response.json();
+    },
     onSuccess: () => {
       toast({
         title: "Success",
-        description: "Enquiry created successfully",
+        description: "Product deleted successfully",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Update Enquiry Mutation
+  const updateEnquiryMutation = useMutation({
+    mutationFn: async (data) => {
+      const token = localStorage.getItem("token");
+      const response = await fetch(
+        `https://adityaspice.com/app/public/api/panel-update-enquiry/${id}`,
+        {
+          method: "PUT",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(data),
+        }
+      );
+      if (!response.ok) throw new Error("Failed to update enquiry");
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Enquiry updated successfully",
       });
       navigate("/enquiries");
     },
@@ -247,60 +270,35 @@ const EnquiryCreate = () => {
     },
   });
 
-  const packingTypes = ["5 Kg", "10 Kg", "15 Kg", "20 Kg", "25 Kg"];
-
   useEffect(() => {
-    const calculateProgress = () => {
-      let filledFields = 0;
-      let totalFields = 0;
-
-      // Count basic details fields
-      const basicDetailsFields = [
-        "customer_id",
-        "enquiry_date",
-        "packing_type",
-      ];
-      basicDetailsFields.forEach((field) => {
-        totalFields++;
-        if (formData[field]) filledFields++;
+    if (enquiryDetails) {
+      setFormData({
+        customer_id: enquiryDetails.enquiry.customer_id.toString(),
+        enquiry_date: enquiryDetails.enquiry.enquiry_date,
+        packing_type: enquiryDetails.enquiry.packing_type,
+        marking: enquiryDetails.enquiry.marking,
+        shipment_date: enquiryDetails.enquiry.shipment_date,
+        sample_required: enquiryDetails.enquiry.sample_required,
+        treatment_required: enquiryDetails.enquiry.treatment_required,
+        etd: enquiryDetails.enquiry.etd,
+        gama_rediations: enquiryDetails.enquiry.gama_rediations,
+        steam_sterlizaton: enquiryDetails.enquiry.steam_sterlizaton,
+        enquiry_status: enquiryDetails.enquiry.enquiry_status,
       });
+      setEnquiryData(enquiryDetails.enquirySub);
 
-      // Count requirements fields
-      const requirementsFields = [
-        "marking",
-        "shipment_date",
-        "sample_required",
-      ];
-      requirementsFields.forEach((field) => {
-        totalFields++;
-        if (formData[field]) filledFields++;
-      });
-
-      // Add treatment fields if treatment is required
-      if (formData.treatment_required === "Yes") {
-        const treatmentFields = ["etd", "gama_rediations", "steam_sterlizaton"];
-        treatmentFields.forEach((field) => {
-          totalFields++;
-          if (formData[field] === "Yes") filledFields++;
-        });
-      }
-
-      // Count all visible product fields for each row
-      enquiryData.forEach((row) => {
-        visibleColumns.forEach((columnKey) => {
-          totalFields++;
-          if (row[columnKey] && row[columnKey].toString().trim() !== "") {
-            filledFields++;
-          }
-        });
-      });
-
-      const percentage = Math.round((filledFields / totalFields) * 100);
-      setProgress(Math.min(percentage, 100));
-    };
-
-    calculateProgress();
-  }, [formData, enquiryData, visibleColumns]);
+      const columnsWithValues = optionalHeaders
+        .filter((header) =>
+          enquiryDetails.enquirySub.some(
+            (row) => row[header.key] && row[header.key].toString().trim() !== ""
+          )
+        )
+        .map((header) => header.key);
+      setVisibleColumns((prev) => [
+        ...new Set([...prev, ...columnsWithValues]),
+      ]);
+    }
+  }, [enquiryDetails]);
 
   const handleInputChange = (e, field) => {
     let value;
@@ -316,37 +314,10 @@ const EnquiryCreate = () => {
   };
 
   const handleRowDataChange = (rowIndex, field, value) => {
-    const numericFields = [
-      'enquirySub_qnty',
-      'enquirySub_quoted_price',
-      
-      'enquirySub_shu',
-      'enquirySub_asta'
-    ];
-    let processedValue = value;
-       // If it's a numeric field, process it
-       if (numericFields.includes(field)) {
-        // Remove any non-numeric characters except decimal point
-        const sanitizedValue = value.replace(/[^\d.]/g, '');
-        
-        // Prevent multiple decimal points
-        const decimalCount = (sanitizedValue.match(/\./g) || []).length;
-        if (decimalCount > 1) {
-          return; // Ignore input with multiple decimal points
-        }
-        
-        // Convert to number if it's a valid number, otherwise keep as empty string
-        processedValue = sanitizedValue === '' ? '' : Number(sanitizedValue);
-        
-        // Validate if it's a valid number
-        if (isNaN(processedValue)) {
-          return; // Ignore invalid numbers
-        }
-      }
     const newData = [...enquiryData];
     newData[rowIndex] = {
       ...newData[rowIndex],
-      [field]: processedValue,
+      [field]: value,
     };
     setEnquiryData(newData);
   };
@@ -378,23 +349,46 @@ const EnquiryCreate = () => {
       },
     ]);
   };
-
   const removeRow = (index) => {
     if (enquiryData.length > 1) {
       setEnquiryData((prevData) => prevData.filter((_, i) => i !== index));
     }
   };
 
-  const RadioOption = ({
-    label,
-    value,
-    onChange,
-    currentValue,
-    required = false,
-  }) => (
+  //   const handleDeleteRow = async (productId) => {
+  //     try {
+  //       await deleteProductMutation.mutateAsync(productId);
+  //       setEnquiryData((prevData) =>
+  //         prevData.filter((row) => row.id !== productId)
+  //       );
+  //     } catch (error) {
+  //       console.error("Failed to delete product:", error);
+  //     }
+  //   };
+  const handleDeleteRow = (productId) => {
+    setDeleteItemId(productId);
+    setDeleteConfirmOpen(true);
+  };
+
+  // Actual delete function
+  const confirmDelete = async () => {
+    try {
+      await deleteProductMutation.mutateAsync(deleteItemId);
+      setEnquiryData((prevData) =>
+        prevData.filter((row) => row.id !== deleteItemId)
+      );
+    } catch (error) {
+      console.error("Failed to delete product:", error);
+    } finally {
+      setDeleteConfirmOpen(false);
+      setDeleteItemId(null);
+    }
+  };
+
+  const RadioOption = ({ label, value, onChange, currentValue }) => (
     <div>
       <label className="block text-sm font-medium mb-2">
-        {label} {required && <span className="text-red-500">*</span>}
+        {label} <span className="text-red-500">*</span>
       </label>
       <RadioGroup
         value={currentValue}
@@ -418,90 +412,59 @@ const EnquiryCreate = () => {
       </RadioGroup>
     </div>
   );
-  const fieldLabels = {
-    customer_id: "Customer",
-    enquiry_date: "Enquiry Date",
-    packing_type: "Packing Type",
-    marking: "Marking",
-    shipment_date: "Shipment Date",
-    sample_required: "Sample Required",
-    treatment_required: "Treatment Required",
-    etd: "ETD",
-    gama_rediations: "Gama Radiations",
-    steam_sterlizaton: "Steam Sterilization",
-    enquirySub_product_name: "Product Name",
-    enquirySub_shu: "SHU",
-    enquirySub_asta: "ASTA",
-    enquirySub_qlty_type: "Quality Type",
-    enquirySub_course_type: "Course Type",
-    enquirySub_qnty: "Quantity",
-    enquirySub_quoted_price: "Quoted Price",
-    enquirySub_final_price: "Final Price",
-    enquirySub_p2b_blend: "P2B Blend",
-  };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-
-    try {
-      const validatedData = enquiryFormSchema.parse({
-        ...formData,
-        enquiry_data: enquiryData,
-      });
-      createEnquiryMutation.mutate(validatedData);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        const groupedErrors = error.errors.reduce((acc, err) => {
-          const field = err.path.join(".");
-          if (!acc[field]) {
-            acc[field] = [];
-          }
-          acc[field].push(err.message);
-          return acc;
-        }, {});
-
-        const errorMessages = Object.entries(groupedErrors).map(
-          ([field, messages]) => {
-            const fieldKey = field.split(".").pop();
-            const label = fieldLabels[fieldKey] || field;
-            return `${label}: ${messages.join(", ")}`;
-          }
-        );
-
-        toast({
-          title: "Validation Error",
-          description: (
-            <div>
-              <ul className="list-disc pl-5">
-                {errorMessages.map((message, index) => (
-                  <li key={index}>{message}</li>
-                ))}
-              </ul>
-            </div>
-          ),
-          variant: "destructive",
-        });
-        return;
-      }
-
-      toast({
-        title: "Error",
-        description: "An unexpected error occurred",
-        variant: "destructive",
-      });
-    }
+    const updateData = {
+      ...formData,
+      enquiry_data: enquiryData,
+    };
+    updateEnquiryMutation.mutate(updateData);
   };
+
+  if (isLoading) {
+    return (
+      <Page>
+        <div className="flex justify-center items-center h-full">
+          <Button disabled>
+            <Loader2 className=" h-4 w-4 animate-spin" />
+            Loading Enquiry Data
+          </Button>
+        </div>
+      </Page>
+    );
+  }
+
+  // Render error state
+  if (isError) {
+    return (
+      <Page>
+        <Card className="w-full max-w-md mx-auto mt-10">
+          <CardHeader>
+            <CardTitle className="text-destructive">
+              Error Fetching Enquiry Data
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Button onClick={() => refetch()} variant="outline">
+              Try Again
+            </Button>
+          </CardContent>
+        </Card>
+      </Page>
+    );
+  }
 
   return (
     <Page>
       <form onSubmit={handleSubmit} className="w-full p-4">
-        <EnquiryHeader progress={progress} />
+        <EnquiryHeader enquiryDetails={enquiryDetails} />
 
         <Card className="mb-6">
           <CardContent className="p-6">
             {/* Basic Details Section */}
             <div className="mb-8">
-              <div className="grid grid-cols-3 gap-6">
+              <div className="grid grid-cols-4 gap-6">
                 <div>
                   <label className="block text-sm font-medium mb-2">
                     Customer <span className="text-red-500">*</span>
@@ -526,9 +489,8 @@ const EnquiryCreate = () => {
                       ))}
                     </SelectContent>
                   </Select>
-                  <CreateCustomer/>
                 </div>
-               
+
                 <div>
                   <label className="block text-sm font-medium mb-2">
                     Enquiry Date <span className="text-red-500">*</span>
@@ -538,6 +500,29 @@ const EnquiryCreate = () => {
                     value={formData.enquiry_date}
                     onChange={(e) => handleInputChange(e, "enquiry_date")}
                   />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-2">
+                    Status <span className="text-red-500">*</span>
+                  </label>
+                  <Select
+                    value={formData.enquiry_status}
+                    onValueChange={(value) =>
+                      handleInputChange({ target: { value } }, "enquiry_status")
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {statusOptions.map((status) => (
+                        <SelectItem key={status} value={status}>
+                          {status}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div>
@@ -556,10 +541,7 @@ const EnquiryCreate = () => {
             {/* Products Section */}
             <div className="mb-8">
               <div className="flex justify-between items-center mb-4">
-               <div className="flex flex-row items-center">
-               <h2 className="text-xl font-semibold">Products</h2>
-               <CreateProduct/>
-               </div>
+                <h2 className="text-xl font-semibold">Products</h2>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="outline" size="sm">
@@ -647,42 +629,31 @@ const EnquiryCreate = () => {
                                       e.target.value
                                     )
                                   }
-                                  type={
-                                    ['enquirySub_qnty', 'enquirySub_quoted_price', 
-                                      'enquirySub_shu', 
-                                     'enquirySub_asta'].includes(header.key) 
-                                      ? "number" 
-                                      : "text"
-                                  }
-                                  step={
-                                    ['enquirySub_qnty', 'enquirySub_quoted_price', 
-                                      'enquirySub_shu', 
-                                     'enquirySub_asta'].includes(header.key) 
-                                      ? "any" 
-                                      : undefined
-                                  }
-                                  min={
-                                    ['enquirySub_qnty', 'enquirySub_quoted_price', 
-                                      'enquirySub_shu', 
-                                     'enquirySub_asta'].includes(header.key) 
-                                      ? "0" 
-                                      : undefined
-                                  }
                                   className="w-full border border-gray-300 bg-yellow-50"
                                 />
                               )}
                             </td>
                           ))}
                         <td className="p-2 border">
-                          <Button
-                            variant="ghost"
-                            onClick={() => removeRow(rowIndex)}
-                            disabled={enquiryData.length === 1}
-                            className="text-red-500"
-                            type="button"
-                          >
-                            <MinusCircle className="h-4 w-4" />
-                          </Button>
+                          {row.id ? (
+                            <Button
+                              variant="ghost"
+                              onClick={() => handleDeleteRow(row.id)}
+                              className="text-red-500"
+                              type="button"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          ) : (
+                            <Button
+                              variant="ghost"
+                              onClick={() => removeRow(rowIndex)}
+                              className="text-red-500"
+                              type="button"
+                            >
+                              <MinusCircle className="h-4 w-4" />
+                            </Button>
+                          )}
                         </td>
                       </tr>
                     ))}
@@ -744,14 +715,12 @@ const EnquiryCreate = () => {
                   value="sample_required"
                   onChange={handleInputChange}
                   currentValue={formData.sample_required}
-                  required={true}
                 />
                 <RadioOption
                   label="Treatment Required"
                   value="treatment_required"
                   onChange={handleInputChange}
                   currentValue={formData.treatment_required}
-                  required={true}
                 />
 
                 {/* Conditional Treatment Options */}
@@ -803,35 +772,40 @@ const EnquiryCreate = () => {
         </Card>
 
         {/* Submit Button */}
-        {/* <div className="flex justify-end">
-          <Button
-            type="submit"
-            className="bg-yellow-500 text-black hover:bg-yellow-400"
-            disabled={createEnquiryMutation.isPending}
-          >
-            {createEnquiryMutation.isPending
-              ? "Submitting..."
-              : "Submit Enquiry"}
-          </Button>
-        </div> */}
         <div className="flex flex-col items-end">
-          {createEnquiryMutation.isPending && <ProgressBar progress={70} />}
+          {updateEnquiryMutation.isPending && <ProgressBar progress={70} />}
           <Button
             type="submit"
             className="bg-yellow-500 text-black hover:bg-yellow-400 flex items-center mt-2"
-            disabled={createEnquiryMutation.isPending}
+            disabled={updateEnquiryMutation.isPending}
           >
-            {createEnquiryMutation.isPending
-              ? "Submitting..."
-              : "Submit Enquiry"}
+            {updateEnquiryMutation.isPending ? "Updating..." : "Update Enquiry"}
           </Button>
         </div>
       </form>
+
+      <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the
+              product from this enquiry.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDelete}
+              className="bg-yellow-500 text-black hover:bg-red-600"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Page>
   );
 };
 
-export default EnquiryCreate;
-
-
-//sajid 
+export default EnquiryEdit;

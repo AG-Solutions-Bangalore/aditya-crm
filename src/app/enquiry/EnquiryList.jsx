@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import Page from "../dashboard/page";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import {
   flexRender,
@@ -14,9 +14,13 @@ import {
   ArrowUpDown,
   ChevronDown,
   Edit,
+  Eye,
   Loader2,
   Search,
   SquarePlus,
+  Trash,
+  UserPen,
+  View,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -34,11 +38,31 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import BASE_URL from "@/config/BaseUrl";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogFooter,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from "@/components/ui/alert-dialog";
 import { useNavigate } from "react-router-dom";
 import moment from "moment";
+import { useToast } from "@/hooks/use-toast";
 const EnquiryList = () => {
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [deleteEnquiryId, setDeleteEnquiryId] = useState(null);
+  const { toast } = useToast();
   const {
     data: enquiry,
     isLoading,
@@ -58,6 +82,28 @@ const EnquiryList = () => {
     },
   });
 
+  const deleteMutation = useMutation({
+    mutationFn: async (id) => {
+      const token = localStorage.getItem("token");
+      await axios.delete(`${BASE_URL}/api/panel-delete-enquiry/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+    },
+    onSuccess: () => {
+      refetch();
+      setDeleteConfirmOpen(false);
+      toast({
+        title: "Success",
+        description: "Enquiry deleted successfully",
+      });
+    },
+  });
+  const confirmDelete = () => {
+    if (deleteEnquiryId) {
+      deleteMutation.mutate(deleteEnquiryId);
+      setDeleteEnquiryId(null);
+    }
+  };
   // State for table management
   const [sorting, setSorting] = useState([]);
   const [columnFilters, setColumnFilters] = useState([]);
@@ -98,33 +144,40 @@ const EnquiryList = () => {
     {
       accessorKey: "customer_country",
       header: "Country",
-      cell: ({ row }) =>  <div>{row.getValue("customer_country")}</div>,
+      cell: ({ row }) => <div>{row.getValue("customer_country")}</div>,
     },
     {
       accessorKey: "enquiry_date",
       header: "Date",
       cell: ({ row }) => {
         const date = row.getValue("enquiry_date");
-        return (
-          moment(date).format("DDD-MMM-YYYY")
-        )
-      }
+        return moment(date).format("DDD-MMM-YYYY");
+      },
     },
-    
-    
 
+   
     {
       accessorKey: "enquiry_status",
       header: "Status",
       cell: ({ row }) => {
         const status = row.getValue("enquiry_status");
-
+    
+        const statusColors = {
+          "Enquiry Received": "bg-blue-100 text-blue-800",
+          "New Enquiry": "bg-green-100 text-green-800",
+          "Order Cancel": "bg-red-100 text-red-800",
+          "Order Closed": "bg-gray-100 text-gray-800",
+          "Order Confirmed": "bg-teal-100 text-teal-800",
+          "Order Delivered": "bg-purple-100 text-purple-800",
+          "Order Progress": "bg-yellow-100 text-yellow-800",
+          "Order Shipped": "bg-orange-100 text-orange-800",
+          "Quotation": "bg-pink-100 text-pink-800",
+        };
+    
         return (
           <span
             className={`px-2 py-1 rounded text-xs ${
-              status == "New Enquiry"
-                ? "bg-green-100 text-green-800"
-                : "bg-gray-100 text-gray-800"
+              statusColors[status] || "bg-gray-100 text-gray-800"
             }`}
           >
             {status}
@@ -132,6 +185,7 @@ const EnquiryList = () => {
         );
       },
     },
+    
     {
       id: "actions",
       header: "Action",
@@ -140,10 +194,69 @@ const EnquiryList = () => {
 
         return (
           <div className="flex flex-row">
-            <Button variant="ghost" size="icon">
-              <Edit className="h-4 w-4" />
-            </Button>
-          </div>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => navigate(`/view-enquiry/${enquiryId}`)}
+                >
+                  <Eye className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>View Enquiry</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+  
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => navigate(`/edit-enquiry/${enquiryId}`)}
+                >
+                  <Edit className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Edit Enquiry</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+  
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => navigate(`/reply-edit-enquiry/${enquiryId}`)}
+                >
+                  <UserPen className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Reply Follow-Up</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+  
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => {
+                    setDeleteEnquiryId(enquiryId);
+                    setDeleteConfirmOpen(true);
+                  }}
+                >
+                  <Trash className="h-4 w-4 text-red-500" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Delete Enquiry</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
         );
       },
     },
@@ -258,7 +371,11 @@ const EnquiryList = () => {
                 })}
             </DropdownMenuContent>
           </DropdownMenu>
-          <Button variant="default" className="ml-2 bg-yellow-500 text-black hover:bg-yellow-100" onClick={()=>navigate('/create-enquiries')}>
+          <Button
+            variant="default"
+            className="ml-2 bg-yellow-500 text-black hover:bg-yellow-100"
+            onClick={() => navigate("/create-enquiries")}
+          >
             <SquarePlus className="h-4 w-4" /> Enquiry
           </Button>
         </div>
@@ -342,6 +459,26 @@ const EnquiryList = () => {
           </div>
         </div>
       </div>
+      <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the
+              enquiry.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDelete}
+              className="bg-yellow-500 text-black hover:bg-red-600"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Page>
   );
 };

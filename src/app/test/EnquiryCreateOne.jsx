@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { z } from "zod";
 import { Card, CardContent } from "@/components/ui/card";
@@ -12,9 +12,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { PlusCircle, MinusCircle, Settings2 } from "lucide-react";
+import { PlusCircle, MinusCircle, Settings2, Copy, Trash2, Save, Upload, Download } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import Page from "../dashboard/page";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -29,18 +30,21 @@ import { ProgressBar } from "@/components/spinner/ProgressBar";
 import CreateCustomer from "../customer/CreateCustomer";
 import CreateProduct from "../product/CreateProduct";
 
+// Keep your existing validation schemas...
+// [Previous validation schemas remain unchanged]
+
 // Validation Schemas
 const productRowSchema = z.object({
   enquirySub_product_name: z.string().min(1, "Product name is required"),
   enquirySub_product_code: z.string().optional(),
-  enquirySub_shu: z.number().min(1, "SHU is required"),
-  enquirySub_asta: z.number().min(1, "ASTA is required"),
+  enquirySub_shu: z.string().min(1, "SHU is required"),
+  enquirySub_asta: z.string().min(1, "ASTA is required"),
   enquirySub_qlty_type: z.string().min(1, "Quality type is required"),
   enquirySub_stem_type: z.string().optional(),
   enquirySub_course_type: z.string().min(1, "Course type is required"),
   enquirySub_moist_value: z.string().optional(),
-  enquirySub_qnty: z.number().min(1, "Quantity is required"),
-  enquirySub_quoted_price: z.number().min(1, "Quoted price is required"),
+  enquirySub_qnty: z.string().min(1, "Quantity is required"),
+  enquirySub_quoted_price: z.string().min(1, "Quoted price is required"),
   enquirySub_final_price: z.string().optional(),
   enquirySub_p2b_blend: z.string().optional(),
 });
@@ -154,13 +158,22 @@ const EnquiryHeader = ({ progress }) => {
   );
 };
 
-// Main Component
-const EnquiryCreate = () => {
+const EnquiryCreateOne = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const [progress, setProgress] = useState(0);
+  
+  // New states for advanced features
+  const [selectedRows, setSelectedRows] = useState([]);
+  const [isDragging, setIsDragging] = useState(false);
+  const [savedDrafts, setSavedDrafts] = useState(() => {
+    const saved = localStorage.getItem('enquiry-drafts');
+    return saved ? JSON.parse(saved) : [];
+  });
 
-  const [visibleColumns, setVisibleColumns] = useState([
+  // Keep your existing states...
+  // [Previous state declarations remain unchanged]
+ const [visibleColumns, setVisibleColumns] = useState([
     "enquirySub_product_name",
     "enquirySub_shu",
     "enquirySub_asta",
@@ -491,11 +504,433 @@ const EnquiryCreate = () => {
       });
     }
   };
+  // Auto-save functionality
+  useEffect(() => {
+    const saveTimeout = setTimeout(() => {
+      localStorage.setItem('current-enquiry-draft', JSON.stringify({
+        formData,
+        enquiryData,
+        lastSaved: new Date().toISOString()
+      }));
+    }, 1000);
 
+    return () => clearTimeout(saveTimeout);
+  }, [formData, enquiryData]);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyboard = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault();
+        saveDraft();
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key === 'd') {
+        e.preventDefault();
+        duplicateSelectedRows();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyboard);
+    return () => window.removeEventListener('keydown', handleKeyboard);
+  }, [selectedRows]);
+
+  // Bulk operations
+  const duplicateSelectedRows = () => {
+    const newRows = selectedRows.map(index => ({
+      ...enquiryData[index],
+      enquirySub_qnty: "",
+      enquirySub_quoted_price: ""
+    }));
+    setEnquiryData([...enquiryData, ...newRows]);
+    setSelectedRows([]);
+  };
+
+  const deleteSelectedRows = () => {
+    if (enquiryData.length <= 1) return;
+    const newData = enquiryData.filter((_, index) => !selectedRows.includes(index));
+    setEnquiryData(newData);
+    setSelectedRows([]);
+  };
+
+  // CSV import/export
+  const handleFileUpload = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const text = e.target.result;
+        const rows = text.split('\n').map(row => row.split(','));
+        // Skip header row
+        const newData = rows.slice(1).map(row => ({
+          enquirySub_product_name: row[0] || "",
+          enquirySub_shu: row[1] || "",
+          enquirySub_asta: row[2] || "",
+          enquirySub_qlty_type: row[3] || "",
+          enquirySub_course_type: row[4] || "",
+          enquirySub_qnty: row[5] || "",
+          enquirySub_quoted_price: row[6] || "",
+          // ... map other fields
+        }));
+        setEnquiryData(newData);
+      };
+      reader.readAsText(file);
+    }
+  };
+
+  const exportToCSV = (e) => {
+    if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    const headers = ['Product Name', 'SHU', 'ASTA', 'Quality Type', 'Course Type', 'Quantity', 'Quoted Price'];
+    const csvContent = [
+      headers.join(','),
+      ...enquiryData.map(row => [
+        row.enquirySub_product_name,
+        row.enquirySub_shu,
+        row.enquirySub_asta,
+        row.enquirySub_qlty_type,
+        row.enquirySub_course_type,
+        row.enquirySub_qnty,
+        row.enquirySub_quoted_price
+      ].join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `enquiry_${new Date().toISOString()}.csv`;
+    link.click();
+  };
+
+  // Draft management
+  const saveDraft = (e) => {
+    if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    const draft = {
+      id: Date.now(),
+      formData,
+      enquiryData,
+      savedAt: new Date().toISOString()
+    };
+    setSavedDrafts(prev => [...prev, draft]);
+    localStorage.setItem('enquiry-drafts', JSON.stringify([...savedDrafts, draft]));
+    toast({
+      title: "Draft Saved",
+      description: "Your enquiry has been saved as a draft",
+    });
+  };
+
+  const loadDraft = (draft) => {
+    setFormData(draft.formData);
+    setEnquiryData(draft.enquiryData);
+  };
+
+  // Enhanced product table component
+  const ProductTable = () => (
+    <div className="mb-8">
+      <div className="flex justify-between items-center mb-4">
+        <div className="flex items-center space-x-2">
+          <h2 className="text-xl font-semibold">Products</h2>
+          <CreateProduct />
+          
+          {/* Bulk Operations */}
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={duplicateSelectedRows}
+                  disabled={selectedRows.length === 0}
+                >
+                  <Copy className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Duplicate Selected (Ctrl+D)</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={deleteSelectedRows}
+                  disabled={selectedRows.length === 0}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Delete Selected</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+
+          {/* Import/Export */}
+          <Input
+            type="file"
+            accept=".csv"
+            onChange={handleFileUpload}
+            className="hidden"
+            id="csv-upload"
+          />
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    document.getElementById('csv-upload').click()
+                  }}
+                >
+                  <Upload className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Import CSV</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={exportToCSV}
+                >
+                  <Download className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Export CSV</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
+
+        {/* Column customization dropdown */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" size="sm">
+              <Settings2 className="h-4 w-4 mr-2" />
+              Customize Columns
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-56">
+            {optionalHeaders.map((header) => (
+              <DropdownMenuItem
+                key={header.key}
+                onClick={() => toggleColumn(header.key)}
+              >
+                <span>{header.label}</span>
+                {visibleColumns.includes(header.key) && (
+                  <span className="text-green-500">✓</span>
+                )}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+
+      {/* Enhanced table with drag-and-drop and row selection */}
+      <div className="overflow-x-auto">
+        <table className="w-full border-collapse">
+          <thead>
+            <tr className="bg-gray-50">
+              <th className="p-2 text-left border w-8">
+                <Checkbox
+                  checked={selectedRows.length === enquiryData.length}
+                  onCheckedChange={(checked) => {
+                    setSelectedRows(checked ? enquiryData.map((_, i) => i) : []);
+                  }}
+                />
+              </th>
+              {[...defaultTableHeaders, ...optionalHeaders]
+                .filter((header) => visibleColumns.includes(header.key))
+                .map((header) => (
+                  <th
+                    key={header.key}
+                    className="p-2 text-left border text-sm font-medium"
+                  >
+                    {header.label}
+                    {header.required && (
+                      <span className="text-red-500 ml-1">*</span>
+                    )}
+                  </th>
+                ))}
+              <th className="p-2 text-left border">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {enquiryData.map((row, rowIndex) => (
+              <tr
+                key={rowIndex}
+                className={`border-b hover:bg-gray-50 ${
+                  selectedRows.includes(rowIndex) ? "bg-yellow-50" : ""
+                }`}
+                draggable
+                onDragStart={() => setIsDragging(true)}
+                onDragEnd={() => setIsDragging(false)}
+              >
+                <td className="p-2 border">
+                  <Checkbox
+                    checked={selectedRows.includes(rowIndex)}
+                    onCheckedChange={(checked) => {
+                      setSelectedRows(
+                        checked
+                          ? [...selectedRows, rowIndex]
+                          : selectedRows.filter((i) => i !== rowIndex)
+                      );
+                    }}
+                  />
+                </td>
+                {/* Your existing row cells */}
+                {[...defaultTableHeaders, ...optionalHeaders]
+                  .filter((header) => visibleColumns.includes(header.key))
+                  .map((header) => (
+                    <td key={header.key} className="p-2 border">
+                      {header.key === "enquirySub_product_name" ? (
+                        <Select
+                          value={row[header.key]}
+                          onValueChange={(value) =>
+                            handleRowDataChange(rowIndex, header.key, value)
+                          }
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select product" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {productData?.product?.map((product) => (
+                              <SelectItem
+                                key={product.id}
+                                value={product.product_name}
+                              >
+                                {product.product_name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      ) : (
+                        <Input
+                          value={row[header.key]}
+                          onChange={(e) =>
+                            handleRowDataChange(
+                              rowIndex,
+                              header.key,
+                              e.target.value
+                            )
+                          }
+                          type={
+                            ['enquirySub_qnty', 'enquirySub_quoted_price', 
+                              'enquirySub_shu', 
+                             'enquirySub_asta'].includes(header.key) 
+                              ? "number" 
+                              : "text"
+                          }
+                          step={
+                            ['enquirySub_qnty', 'enquirySub_quoted_price', 
+                              'enquirySub_shu', 
+                             'enquirySub_asta'].includes(header.key) 
+                              ? "any" 
+                              : undefined
+                          }
+                          min={
+                            ['enquirySub_qnty', 'enquirySub_quoted_price', 
+                              'enquirySub_shu', 
+                             'enquirySub_asta'].includes(header.key) 
+                              ? "0" 
+                              : undefined
+                          }
+                          className="w-full border border-gray-300 bg-yellow-50"
+                        />
+                      )}
+                    </td>
+                  ))}
+                <td className="p-2 border">
+                  <Button
+                    variant="ghost"
+                    onClick={() => removeRow(rowIndex)}
+                    disabled={enquiryData.length === 1}
+                    className="text-red-500"
+                    type="button"
+                  >
+                    <MinusCircle className="h-4 w-4" />
+                  </Button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+       <div className="mt-4 flex justify-end">
+                      <Button
+                        type="button"
+                        onClick={addRow}
+                        className="bg-yellow-500 text-black hover:bg-yellow-400"
+                      >
+                        <PlusCircle className="h-4 w-4 mr-2" />
+                        Add Product
+                      </Button>
+                    </div>
+    </div>
+  );
+
+  // Return JSX
   return (
     <Page>
       <form onSubmit={handleSubmit} className="w-full p-4">
         <EnquiryHeader progress={progress} />
+
+        {/* Draft Management */}
+     
+        <div className="mb-4 flex justify-end space-x-2">
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={saveDraft}
+                >
+                  <Save className="h-4 w-4 mr-2" />
+                  Save Draft
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Save Draft (Ctrl+S)</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button variant="outline" size="sm">
+                Load Draft
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Saved Drafts</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-2">
+                {savedDrafts.map((draft) => (
+                  <div
+                    key={draft.id}
+                    className="flex justify-between items-center p-2 border rounded"
+                  >
+                    <span>
+                      Draft from{" "}
+                      {new Date(draft.savedAt).toLocaleDateString()}
+                    </span>
+                    <Button onClick={() => loadDraft(draft)}>Load</Button>
+                  </div>
+                ))}
+              </div>
+            </DialogContent>
+          </Dialog>
+        </div>
 
         <Card className="mb-6">
           <CardContent className="p-6">
@@ -526,9 +961,9 @@ const EnquiryCreate = () => {
                       ))}
                     </SelectContent>
                   </Select>
-                  <CreateCustomer/>
+                  <CreateCustomer />
                 </div>
-               
+
                 <div>
                   <label className="block text-sm font-medium mb-2">
                     Enquiry Date <span className="text-red-500">*</span>
@@ -554,152 +989,7 @@ const EnquiryCreate = () => {
             </div>
 
             {/* Products Section */}
-            <div className="mb-8">
-              <div className="flex justify-between items-center mb-4">
-               <div className="flex flex-row items-center">
-               <h2 className="text-xl font-semibold">Products</h2>
-               <CreateProduct/>
-               </div>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="sm">
-                      <Settings2 className="h-4 w-4 mr-2" />
-                      Customize Columns
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-56">
-                    {optionalHeaders.map((header) => (
-                      <DropdownMenuItem
-                        key={header.key}
-                        onClick={() => toggleColumn(header.key)}
-                      >
-                        <span>{header.label}</span>
-                        {visibleColumns.includes(header.key) && (
-                          <span className="text-green-500">✓</span>
-                        )}
-                      </DropdownMenuItem>
-                    ))}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-
-              <div className="overflow-x-auto">
-                <table className="w-full border-collapse">
-                  <thead>
-                    <tr className="bg-gray-50">
-                      {[...defaultTableHeaders, ...optionalHeaders]
-                        .filter((header) => visibleColumns.includes(header.key))
-                        .map((header) => (
-                          <th
-                            key={header.key}
-                            className="p-2 text-left border text-sm font-medium"
-                          >
-                            {header.label}
-                            {header.required && (
-                              <span className="text-red-500 ml-1">*</span>
-                            )}
-                          </th>
-                        ))}
-                      <th className="p-2 text-left border">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {enquiryData.map((row, rowIndex) => (
-                      <tr key={rowIndex} className="border-b hover:bg-gray-50">
-                        {[...defaultTableHeaders, ...optionalHeaders]
-                          .filter((header) =>
-                            visibleColumns.includes(header.key)
-                          )
-                          .map((header) => (
-                            <td key={header.key} className="p-2 border">
-                              {header.key === "enquirySub_product_name" ? (
-                                <Select
-                                  value={row[header.key]}
-                                  onValueChange={(value) =>
-                                    handleRowDataChange(
-                                      rowIndex,
-                                      header.key,
-                                      value
-                                    )
-                                  }
-                                >
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Select product" />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    {productData?.product?.map((product) => (
-                                      <SelectItem
-                                        key={product.id}
-                                        value={product.product_name}
-                                      >
-                                        {product.product_name}
-                                      </SelectItem>
-                                    ))}
-                                  </SelectContent>
-                                </Select>
-                              ) : (
-                                <Input
-                                  value={row[header.key]}
-                                  onChange={(e) =>
-                                    handleRowDataChange(
-                                      rowIndex,
-                                      header.key,
-                                      e.target.value
-                                    )
-                                  }
-                                  type={
-                                    ['enquirySub_qnty', 'enquirySub_quoted_price', 
-                                      'enquirySub_shu', 
-                                     'enquirySub_asta'].includes(header.key) 
-                                      ? "number" 
-                                      : "text"
-                                  }
-                                  step={
-                                    ['enquirySub_qnty', 'enquirySub_quoted_price', 
-                                      'enquirySub_shu', 
-                                     'enquirySub_asta'].includes(header.key) 
-                                      ? "any" 
-                                      : undefined
-                                  }
-                                  min={
-                                    ['enquirySub_qnty', 'enquirySub_quoted_price', 
-                                      'enquirySub_shu', 
-                                     'enquirySub_asta'].includes(header.key) 
-                                      ? "0" 
-                                      : undefined
-                                  }
-                                  className="w-full border border-gray-300 bg-yellow-50"
-                                />
-                              )}
-                            </td>
-                          ))}
-                        <td className="p-2 border">
-                          <Button
-                            variant="ghost"
-                            onClick={() => removeRow(rowIndex)}
-                            disabled={enquiryData.length === 1}
-                            className="text-red-500"
-                            type="button"
-                          >
-                            <MinusCircle className="h-4 w-4" />
-                          </Button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              <div className="mt-4 flex justify-end">
-                <Button
-                  type="button"
-                  onClick={addRow}
-                  className="bg-yellow-500 text-black hover:bg-yellow-400"
-                >
-                  <PlusCircle className="h-4 w-4 mr-2" />
-                  Add Product
-                </Button>
-              </div>
-            </div>
+            <ProductTable />
 
             {/* Requirements Section */}
             <div className="mb-8">
@@ -802,18 +1092,7 @@ const EnquiryCreate = () => {
           </CardContent>
         </Card>
 
-        {/* Submit Button */}
-        {/* <div className="flex justify-end">
-          <Button
-            type="submit"
-            className="bg-yellow-500 text-black hover:bg-yellow-400"
-            disabled={createEnquiryMutation.isPending}
-          >
-            {createEnquiryMutation.isPending
-              ? "Submitting..."
-              : "Submit Enquiry"}
-          </Button>
-        </div> */}
+        {/* Submit Button and Progress */}
         <div className="flex flex-col items-end">
           {createEnquiryMutation.isPending && <ProgressBar progress={70} />}
           <Button
@@ -821,9 +1100,7 @@ const EnquiryCreate = () => {
             className="bg-yellow-500 text-black hover:bg-yellow-400 flex items-center mt-2"
             disabled={createEnquiryMutation.isPending}
           >
-            {createEnquiryMutation.isPending
-              ? "Submitting..."
-              : "Submit Enquiry"}
+            {createEnquiryMutation.isPending ? "Submitting..." : "Submit Enquiry"}
           </Button>
         </div>
       </form>
@@ -831,7 +1108,4 @@ const EnquiryCreate = () => {
   );
 };
 
-export default EnquiryCreate;
-
-
-//sajid 
+export default EnquiryCreateOne;

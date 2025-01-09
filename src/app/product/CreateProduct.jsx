@@ -12,14 +12,14 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-
+import { useLocation } from "react-router-dom";
 const CreateProduct = () => {
     const [open, setOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [productName, setProductName] = useState("");
     const { toast } = useToast();
     const queryClient = useQueryClient();
-  
+   const { pathname } = useLocation();
     const handleSubmit = async () => {
       if (!productName.trim()) {
         toast({
@@ -62,9 +62,15 @@ const CreateProduct = () => {
   return (
       <Popover open={open} onOpenChange={setOpen}>
          <PopoverTrigger asChild>
+         {pathname === "/products" ? (
            <Button variant="default" className="ml-2 bg-yellow-500 text-black hover:bg-yellow-100">
              <SquarePlus className="h-4 w-4 mr-2" /> Product
            </Button>
+            ) : pathname === "/create-enquiries" ? (
+              <p className="text-xs text-yellow-700 ml-2 mt-1 w-32 hover:text-red-800 cursor-pointer">
+            Create Product
+          </p>
+        ) : null}
          </PopoverTrigger>
          <PopoverContent className="w-80">
            <div className="grid gap-4">
@@ -81,7 +87,7 @@ const CreateProduct = () => {
                  value={productName}
                  onChange={(e) => setProductName(e.target.value)}
                />
-               <Button onClick={handleSubmit} disabled={isLoading}>
+               <Button onClick={handleSubmit} disabled={isLoading}  className=" bg-yellow-500 text-black hover:bg-yellow-100">
                  {isLoading ? (
                    <>
                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
