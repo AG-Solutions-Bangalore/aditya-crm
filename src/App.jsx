@@ -8,6 +8,10 @@ import CustomerList from "./app/customer/CustomerList";
 import ProductList from "./app/product/ProductList";
 import EnquiryList from "./app/enquiry/EnquiryList";
 import EnquiryCreate from "./app/enquiry/EnquiryCreate";
+import EnquiryEdit from "./app/enquiry/EnquiryEdit";
+import EnquiryReplyEdit from "./app/enquiry/EnquiryReplyEdit";
+import EnquiryView from "./app/enquiry/EnquiryView";
+import EnquiryCreateOne from "./app/test/EnquiryCreateOne";
 
 
 const queryClient = new QueryClient()
@@ -29,6 +33,10 @@ function App() {
         {/* enquiry */}
         <Route path="/enquiries" element={<EnquiryList />} />
         <Route path="/create-enquiries" element={<EnquiryCreate />} />
+        <Route path="/edit-enquiry/:id" element={<EnquiryEdit />} />
+        <Route path="/reply-edit-enquiry/:id" element={<EnquiryReplyEdit />} />
+        <Route path="/view-enquiry/:id" element={<EnquiryView />} />
+        <Route path="/test" element={<EnquiryCreateOne />} />
        
         
       </Routes>

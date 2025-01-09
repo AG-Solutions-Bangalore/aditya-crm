@@ -226,7 +226,7 @@ const EditProduct = ({productId}) => {
             <Button 
               onClick={handleSubmit} 
               disabled={isLoading || !hasChanges}
-              className={`mt-2 relative overflow-hidden ${hasChanges ? 'bg-blue-500 hover:bg-blue-600' : ''}`}
+              className={`mt-2 relative overflow-hidden ${hasChanges ? 'bg-yellow-500 text-black hover:bg-yellow-100' : ''}`}
             >
               {isLoading ? (
                 <>

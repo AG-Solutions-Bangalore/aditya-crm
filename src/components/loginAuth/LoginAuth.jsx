@@ -1,53 +1,52 @@
-import React, { useContext, useEffect, useState } from 'react'
+import React, { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { useToast } from "@/hooks/use-toast"
-import BASE_URL from '@/config/BaseUrl';
-import { Loader } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { ContextPanel } from '@/lib/ContextPanel';
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useToast } from "@/hooks/use-toast";
+import BASE_URL from "@/config/BaseUrl";
+import { Loader } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { ContextPanel } from "@/lib/ContextPanel";
 
 export default function LoginAuth() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-   const [loadingMessage, setLoadingMessage] = useState("");
+  const [loadingMessage, setLoadingMessage] = useState("");
   const navigate = useNavigate();
   const { toast } = useToast();
-    const loadingMessages = [
-      "Setting things up for you...",
-      "Checking your credentials...",
-      "Preparing your dashboard...",
-      "Almost there...",
-    ];
-  
-    useEffect(() => {
-      let messageIndex = 0;
-      let intervalId;
-  
-      if (isLoading) {
-        setLoadingMessage(loadingMessages[0]);
-        intervalId = setInterval(() => {
-          messageIndex = (messageIndex + 1) % loadingMessages.length;
-          setLoadingMessage(loadingMessages[messageIndex]);
-        }, 800);
-      }
-  
-      return () => {
-        if (intervalId) clearInterval(intervalId);
-      };
-    }, [isLoading]);
-  
+  const loadingMessages = [
+    "Setting things up for you...",
+    "Checking your credentials...",
+    "Preparing your dashboard...",
+    "Almost there...",
+  ];
+
+  useEffect(() => {
+    let messageIndex = 0;
+    let intervalId;
+
+    if (isLoading) {
+      setLoadingMessage(loadingMessages[0]);
+      intervalId = setInterval(() => {
+        messageIndex = (messageIndex + 1) % loadingMessages.length;
+        setLoadingMessage(loadingMessages[messageIndex]);
+      }, 800);
+    }
+
+    return () => {
+      if (intervalId) clearInterval(intervalId);
+    };
+  }, [isLoading]);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -59,10 +58,10 @@ export default function LoginAuth() {
 
     try {
       const res = await axios.post(`${BASE_URL}/api/panel-login`, formData);
-      
-      if (res.status == 200 ) {
+
+      if (res.status == 200) {
         const token = res.data.UserInfo?.token;
-        
+
         if (token) {
           // Store user information in localStorage
           localStorage.setItem("token", token);
@@ -73,7 +72,7 @@ export default function LoginAuth() {
           localStorage.setItem("username", res.data.UserInfo.user.name);
           localStorage.setItem("email", res.data.UserInfo.user.email);
           localStorage.setItem("userType", res.data.UserInfo.user.user_type);
-         
+
           // Show success toast
           toast({
             title: "Login Successful",
@@ -82,7 +81,7 @@ export default function LoginAuth() {
 
           // Direct navigation based on user type
           const userType = res.data.UserInfo.user.user_type;
-          switch(userType) {
+          switch (userType) {
             case 1:
               navigate("/home");
               break;
@@ -109,33 +108,32 @@ export default function LoginAuth() {
       toast({
         variant: "destructive",
         title: "Login Failed",
-        description: error.response?.data?.message || "Please check your credentials.",
+        description:
+          error.response?.data?.message || "Please check your credentials.",
       });
       setIsLoading(false);
     }
   };
 
   return (
-    <motion.div 
+    <motion.div
       className="relative flex flex-col justify-center items-center min-h-screen bg-gray-100"
       initial={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.3 }}
     >
-    
-
       <motion.div
-        initial={{ 
-          opacity: 1, 
-          x: 0 
+        initial={{
+          opacity: 1,
+          x: 0,
         }}
         exit={{
           opacity: 0,
           x: -window.innerWidth,
           transition: {
             duration: 0.3,
-            ease: "easeInOut"
-          }
+            ease: "easeInOut",
+          },
         }}
       >
         <Card className="w-80 max-w-md">
@@ -189,30 +187,30 @@ export default function LoginAuth() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.4 }}
                 >
-                  <Button 
-                    type="submit" 
-                    className="w-full" 
+                  <Button
+                    type="submit"
+                    className="w-full bg-yellow-500 text-black hover:bg-yellow-100"
                     disabled={isLoading}
                   >
-                     {isLoading ? (
-                                          <motion.span
-                                            initial={{ opacity: 0 }}
-                                            animate={{ opacity: 1 }}
-                                            className="flex items-center justify-center"
-                                          >
-                                            <motion.span
-                                              key={loadingMessage}
-                                              initial={{ opacity: 0, y: 10 }}
-                                              animate={{ opacity: 1, y: 0 }}
-                                              exit={{ opacity: 0, y: -10 }}
-                                              className="text-sm"
-                                            >
-                                              {loadingMessage}
-                                            </motion.span>
-                                          </motion.span>
-                                        ) : (
-                                          "Sign in"
-                                        )}
+                    {isLoading ? (
+                      <motion.span
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        className="flex items-center justify-center"
+                      >
+                        <motion.span
+                          key={loadingMessage}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -10 }}
+                          className="text-sm"
+                        >
+                          {loadingMessage}
+                        </motion.span>
+                      </motion.span>
+                    ) : (
+                      "Sign in"
+                    )}
                   </Button>
                 </motion.div>
               </div>
@@ -221,5 +219,5 @@ export default function LoginAuth() {
         </Card>
       </motion.div>
     </motion.div>
-  )
+  );
 }

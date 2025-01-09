@@ -227,7 +227,7 @@ const EditCustomer = ({ customerId }) => {
         )}
 
         <DialogFooter>
-          <Button onClick={handleSubmit} disabled={isLoading || isFetching}>
+          <Button onClick={handleSubmit} disabled={isLoading || isFetching} className="bg-yellow-500 text-black hover:bg-yellow-100">
             {isLoading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
