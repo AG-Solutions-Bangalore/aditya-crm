@@ -59,9 +59,11 @@ import {
 import { useNavigate } from "react-router-dom";
 import moment from "moment";
 import { useToast } from "@/hooks/use-toast";
+import { encryptId } from "@/utils/encyrption/Encyrption";
 const EnquiryList = () => {
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [deleteEnquiryId, setDeleteEnquiryId] = useState(null);
+  const userType = parseInt(localStorage.getItem("userType"), 10)
   const { toast } = useToast();
   const {
     data: enquiry,
@@ -200,7 +202,7 @@ const EnquiryList = () => {
                 <Button
                   variant="ghost"
                   size="icon"
-                  onClick={() => navigate(`/view-enquiry/${enquiryId}`)}
+                  onClick={() => navigate(`/view-enquiry/${encryptId(enquiryId)}`)}
                 >
                   <Eye className="h-4 w-4" />
                 </Button>
@@ -208,14 +210,16 @@ const EnquiryList = () => {
               <TooltipContent>View Enquiry</TooltipContent>
             </Tooltip>
           </TooltipProvider>
-  
+          {(userType === 2 || userType === 3) && (
+          
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
                   variant="ghost"
                   size="icon"
-                  onClick={() => navigate(`/edit-enquiry/${enquiryId}`)}
+                  onClick={() => navigate(`/edit-enquiry/${encryptId(enquiryId)}`)}
+                 
                 >
                   <Edit className="h-4 w-4" />
                 </Button>
@@ -223,14 +227,15 @@ const EnquiryList = () => {
               <TooltipContent>Edit Enquiry</TooltipContent>
             </Tooltip>
           </TooltipProvider>
-  
+             )}
+     {(userType === 1 || userType === 3) && (
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
                   variant="ghost"
                   size="icon"
-                  onClick={() => navigate(`/reply-edit-enquiry/${enquiryId}`)}
+                  onClick={() => navigate(`/reply-edit-enquiry/${encryptId(enquiryId)}`)}
                 >
                   <UserPen className="h-4 w-4" />
                 </Button>
@@ -238,7 +243,9 @@ const EnquiryList = () => {
               <TooltipContent>Reply Follow-Up</TooltipContent>
             </Tooltip>
           </TooltipProvider>
-  
+          
+    )}
+       {( userType === 3) && (
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -256,6 +263,7 @@ const EnquiryList = () => {
               <TooltipContent>Delete Enquiry</TooltipContent>
             </Tooltip>
           </TooltipProvider>
+       )}
         </div>
         );
       },
@@ -282,7 +290,7 @@ const EnquiryList = () => {
     },
     initialState: {
       pagination: {
-        pageSize: 7,
+        pageSize: 10,
       },
     },
   });
@@ -371,6 +379,7 @@ const EnquiryList = () => {
                 })}
             </DropdownMenuContent>
           </DropdownMenu>
+          {(userType === 2 || userType === 3) && (
           <Button
             variant="default"
             className="ml-2 bg-yellow-500 text-black hover:bg-yellow-100"
@@ -378,6 +387,7 @@ const EnquiryList = () => {
           >
             <SquarePlus className="h-4 w-4" /> Enquiry
           </Button>
+             )}
         </div>
         {/* table  */}
         <div className="rounded-md border">

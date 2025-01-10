@@ -18,6 +18,7 @@ import Page from "../dashboard/page";
 import { useParams } from "react-router-dom";
 
 import { useReactToPrint } from "react-to-print";
+import { decryptId } from "@/utils/encyrption/Encyrption";
 
 const PrintableEnquiry = React.forwardRef(({ enquiryDetails }, ref) => {
   const InfoSection = ({ title, items }) => (
@@ -125,7 +126,6 @@ const PrintableEnquiry = React.forwardRef(({ enquiryDetails }, ref) => {
       {/* Company Header */}
       <div className="text-center mb-6">
         <h1 className="text-2xl font-bold">Aditya Spice</h1>
-        <p className="text-sm">123 Business Street, Javanagar Layout</p>
         <p className="text-sm">
           Contact: +1234567890 | Email: info@adityaspice.com
         </p>
@@ -135,18 +135,20 @@ const PrintableEnquiry = React.forwardRef(({ enquiryDetails }, ref) => {
       <div className="flex justify-between mb-6">
         <div>
           <p className="font-bold">
-            Ref: {enquiryDetails?.enquiry?.enquiry_ref || "N/A"}
+          
+            {enquiryDetails?.customer?.customer_name || "N/A"}
           </p>
           <p className="text-sm">
-            Status: {enquiryDetails?.enquiry?.enquiry_status || "N/A"}
+          Country: {enquiryDetails?.customer?.customer_country || "N/A"}
           </p>
         </div>
         <div className="text-right">
           <p className="font-bold">
-            {enquiryDetails?.customer?.customer_name || "N/A"}
+          Ref: {enquiryDetails?.enquiry?.enquiry_ref || "N/A"}
           </p>
           <p className="text-sm">
-            Country: {enquiryDetails?.customer?.customer_country || "N/A"}
+           
+            Status: {enquiryDetails?.enquiry?.enquiry_status || "N/A"}
           </p>
         </div>
       </div>
@@ -308,18 +310,44 @@ const PrintableEnquiry = React.forwardRef(({ enquiryDetails }, ref) => {
 });
 
 // Header Component
-const EnquiryHeader = ({ enquiryDetails,handlePrint }) => {
+const EnquiryHeader = ({ enquiryDetails, handlePrint }) => {
   return (
     <div className="flex sticky top-0 z-10 border border-gray-200 rounded-lg justify-between items-start gap-8 mb-2 bg-white p-4 shadow-sm">
       <div className="flex-1">
         <div className="flex flex-col gap-2">
-        <div className="flex items-center gap-2">
-          <h1 className="text-3xl font-bold text-gray-800">Enquiry Details</h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-3xl font-bold text-gray-800 flex items-center gap-2">
+              {" "}
+              <span>{enquiryDetails?.customer?.customer_name || "N/A"}</span>
+              <span className="text-sm uppercase">
+                {enquiryDetails?.customer?.customer_country}
+              </span>
+            </h1>
+          </div>
+          <div className="flex flex-row items-center gap-5">
+            <div className="flex  gap-2 text-sm">
+              <FileText className="h-4 w-4 text-yellow-500" />
+              <span className="font-medium">
+                Ref: {enquiryDetails?.enquiry?.enquiry_ref || "N/A"}
+              </span>
+            </div>
+            <div className="flex  gap-2 text-sm">
+              <Calendar className="h-4 w-4 text-yellow-500" />
+              <span className="font-medium">
+                {enquiryDetails?.enquiry?.enquiry_date || "N/A"}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex-1 flex flex-col gap-3">
+        <div className="flex items-center justify-end gap-2 text-sm">
           <span className="bg-yellow-100 text-yellow-800 text-sm font-medium px-2.5 py-0.5 rounded">
             {enquiryDetails?.enquiry?.enquiry_status || "-"}
           </span>
-          </div>
-          <div>
+        </div>
+        <div className="flex items-center justify-end">
           <Button
             onClick={handlePrint}
             className="bg-yellow-500 text-black hover:bg-yellow-400"
@@ -327,26 +355,6 @@ const EnquiryHeader = ({ enquiryDetails,handlePrint }) => {
             <Printer className="h-4 w-4 mr-2" />
             Print
           </Button>
-          </div>
-        </div>
-      </div>
-
-      <div className="flex-1 flex flex-col gap-3">
-        <div className="flex items-center justify-end gap-2 text-sm">
-          <Building2 className="h-4 w-4 text-yellow-500" />
-          <span>{enquiryDetails?.customer?.customer_name || "N/A"}</span>
-        </div>
-        <div className="flex items-center justify-end gap-2 text-sm">
-          <FileText className="h-4 w-4 text-yellow-500" />
-          <span className="font-medium">
-            Ref: {enquiryDetails?.enquiry?.enquiry_ref || "N/A"}
-          </span>
-        </div>
-        <div className="flex items-center justify-end gap-2 text-sm">
-          <Globe className="h-4 w-4 text-yellow-500" />
-          <span className="font-medium">
-            Country: {enquiryDetails?.customer?.customer_country || "N/A"}
-          </span>
         </div>
       </div>
     </div>
@@ -355,6 +363,23 @@ const EnquiryHeader = ({ enquiryDetails,handlePrint }) => {
 
 const EnquiryView = () => {
   const { id } = useParams();
+   const originalId = decryptId(id);
+    if (!originalId) {
+      return (
+        <Page>
+          <Card className="w-full max-w-md mx-auto mt-10">
+            <CardHeader>
+              <CardTitle className="text-destructive">
+                Error Decrypting Data
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              
+            </CardContent>
+          </Card>
+        </Page>
+      )
+    }
   const componentRef = useRef();
   const {
     data: enquiryDetails,
@@ -365,7 +390,7 @@ const EnquiryView = () => {
     queryFn: async () => {
       const token = localStorage.getItem("token");
       const response = await fetch(
-        `https://adityaspice.com/app/public/api/panel-fetch-enquiry-by-id/${id}`,
+        `https://adityaspice.com/app/public/api/panel-fetch-enquiry-by-id/${originalId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -390,8 +415,6 @@ const EnquiryView = () => {
     `,
   });
 
- 
-
   const InfoSection = ({ title, children }) => (
     <div className="mb-6">
       <h3 className="text-lg font-semibold mb-3 text-gray-800">{title}</h3>
@@ -403,7 +426,7 @@ const EnquiryView = () => {
     <div className="flex items-center gap-2 p-2 bg-gray-50 rounded-lg">
       <Icon className="h-4 w-4 text-yellow-600 shrink-0" />
       <span className="text-sm text-gray-600">{label}:</span>
-      <span className="text-sm font-medium">{value || "-"}</span>
+      <span className="text-sm font-bold">{value || "-"}</span>
     </div>
   );
 
@@ -424,22 +447,22 @@ const EnquiryView = () => {
               <th className="p-2 text-left border border-gray-200 font-medium text-black">
                 Product Name
               </th>
-              <th className="p-2 text-left border border-gray-200 font-medium text-black">
+              <th className="p-2 text-center border border-gray-200 font-medium text-black">
                 SHU
               </th>
-              <th className="p-2 text-left border border-gray-200 font-medium text-black">
+              <th className="p-2 text-center border border-gray-200 font-medium text-black">
                 ASTA
               </th>
-              <th className="p-2 text-left border border-gray-200 font-medium text-black">
+              <th className="p-2 text-center border border-gray-200 font-medium text-black">
                 Quality Type
               </th>
-              <th className="p-2 text-left border border-gray-200 font-medium text-black">
+              <th className="p-2 text-center border border-gray-200 font-medium text-black">
                 Course Type
               </th>
-              <th className="p-2 text-left border border-gray-200 font-medium text-black">
+              <th className="p-2 text-center border border-gray-200 font-medium text-black">
                 Quantity
               </th>
-              <th className="p-2 text-left border border-gray-200 font-medium text-black">
+              <th className="p-2 text-center border border-gray-200 font-medium text-black">
                 Quoted Price
               </th>
               {optionalHeaders.map(
@@ -447,7 +470,7 @@ const EnquiryView = () => {
                   products?.some((product) => product[header.key]) && (
                     <th
                       key={header.key}
-                      className="p-2 text-left border border-gray-200 font-medium text-black"
+                      className="p-2 text-center border border-gray-200 font-medium text-black"
                     >
                       {header.label}
                     </th>
@@ -461,22 +484,22 @@ const EnquiryView = () => {
                 <td className="p-2 border border-gray-200">
                   {product.enquirySub_product_name}
                 </td>
-                <td className="p-2 border border-gray-200">
+                <td className="p-2 text-center border border-gray-200">
                   {product.enquirySub_shu}
                 </td>
-                <td className="p-2 border border-gray-200">
+                <td className="p-2 text-center border border-gray-200">
                   {product.enquirySub_asta}
                 </td>
-                <td className="p-2 border border-gray-200">
+                <td className="p-2 text-center border border-gray-200">
                   {product.enquirySub_qlty_type}
                 </td>
-                <td className="p-2 border border-gray-200">
+                <td className="p-2 text-center border border-gray-200">
                   {product.enquirySub_course_type}
                 </td>
-                <td className="p-2 border border-gray-200">
+                <td className="p-2 text-center border border-gray-200">
                   {product.enquirySub_qnty}
                 </td>
-                <td className="p-2 border border-gray-200">
+                <td className="p-2 text-center border border-gray-200">
                   {product.enquirySub_quoted_price}
                 </td>
                 {optionalHeaders.map(
@@ -484,7 +507,7 @@ const EnquiryView = () => {
                     products?.some((p) => p[header.key]) && (
                       <td
                         key={header.key}
-                        className="p-2 border border-gray-200"
+                        className="p-2 border text-center border-gray-200"
                       >
                         {product[header.key]}
                       </td>
@@ -539,24 +562,22 @@ const EnquiryView = () => {
             Print
           </Button>
         </div> */}
-        <div className="hidden print:block">
+        <div className=" hidden print:block">
           <PrintableEnquiry
             ref={componentRef}
             enquiryDetails={enquiryDetails}
           />
         </div>
 
-        <div className="space-y-6">
-          <EnquiryHeader enquiryDetails={enquiryDetails} handlePrint={handlePrint}/>
+        <div className="space-y-2">
+          <EnquiryHeader
+            enquiryDetails={enquiryDetails}
+            handlePrint={handlePrint}
+          />
 
           <Card>
             <CardContent className="p-6">
               <InfoSection title="Basic Information">
-                <InfoItem
-                  icon={Calendar}
-                  label="Enquiry Date"
-                  value={enquiryDetails?.enquiry?.enquiry_date}
-                />
                 <InfoItem
                   icon={Package}
                   label="Packing Type"
@@ -582,34 +603,40 @@ const EnquiryView = () => {
                   label="Production Date"
                   value={enquiryDetails?.enquiry?.production_date}
                 />
-              </InfoSection>
-              <InfoSection title="Treatment Information">
-                <InfoItem
-                  icon={FileText}
-                  label="Special Instruction"
-                  value={enquiryDetails?.enquiry?.special_instruction}
-                />
                 <InfoItem
                   icon={TestTubes}
                   label="Treatment Required"
                   value={enquiryDetails?.enquiry?.treatment_required}
                 />
-                <InfoItem
-                  icon={Clock}
-                  label="ETD"
-                  value={enquiryDetails?.enquiry?.etd}
-                />
-                <InfoItem
-                  icon={TestTubes}
-                  label="Gama Radiations"
-                  value={enquiryDetails?.enquiry?.gama_rediations}
-                />
-                <InfoItem
-                  icon={TestTubes}
-                  label="Steam Sterilization"
-                  value={enquiryDetails?.enquiry?.steam_sterlizaton}
-                />
+
+                {enquiryDetails?.enquiry?.treatment_required === "Yes" && (
+                  <>
+                    <InfoItem
+                      icon={Clock}
+                      label="ETD"
+                      value={enquiryDetails?.enquiry?.etd}
+                    />
+                    <InfoItem
+                      icon={TestTubes}
+                      label="Gama Radiations"
+                      value={enquiryDetails?.enquiry?.gama_rediations}
+                    />
+                    <InfoItem
+                      icon={TestTubes}
+                      label="Steam Sterilization"
+                      value={enquiryDetails?.enquiry?.steam_sterlizaton}
+                    />
+                  </>
+                )}
+                <div className="col-span-3">
+                  <InfoItem
+                    icon={FileText}
+                    label="Special Instruction"
+                    value={enquiryDetails?.enquiry?.special_instruction}
+                  />
+                </div>
               </InfoSection>
+
               <div className="mt-6">
                 <h3 className="text-lg font-semibold mb-3 text-gray-800">
                   Products Information

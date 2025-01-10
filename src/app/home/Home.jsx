@@ -1,6 +1,6 @@
-import React from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import React from "react";
+import { useQuery } from "@tanstack/react-query";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -8,15 +8,15 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
-import { 
-  FileText, 
-  ClipboardCheck, 
-  CheckCircle, 
+} from "@/components/ui/table";
+import {
+  FileText,
+  ClipboardCheck,
+  CheckCircle,
   XCircle,
-  Loader2
-} from 'lucide-react';
-import Page from '../dashboard/page';
+  Loader2,
+} from "lucide-react";
+import Page from "../dashboard/page";
 
 const StatCard = ({ title, value, icon: Icon, className }) => (
   <Card className="relative overflow-hidden">
@@ -33,7 +33,7 @@ const StatCard = ({ title, value, icon: Icon, className }) => (
 );
 
 const EnquiryTable = ({ enquiries }) => (
-  <Card className="mt-6">
+  <Card className="mt-2">
     <CardHeader>
       <CardTitle className="text-lg">Recent Enquiries</CardTitle>
     </CardHeader>
@@ -44,7 +44,9 @@ const EnquiryTable = ({ enquiries }) => (
             <TableRow>
               <TableHead className="font-medium text-black">Customer</TableHead>
               <TableHead className="font-medium text-black">Branch</TableHead>
-              <TableHead className="font-medium text-black">Reference</TableHead>
+              <TableHead className="font-medium text-black">
+                Reference
+              </TableHead>
               <TableHead className="font-medium text-black">Date</TableHead>
               <TableHead className="font-medium text-black">Products</TableHead>
             </TableRow>
@@ -67,21 +69,60 @@ const EnquiryTable = ({ enquiries }) => (
     </CardContent>
   </Card>
 );
+const CountryData = ({ enquiries }) => {
+  const enquiryCountryData = enquiries || [];
+
+  console.log("Enquiry Country Data:", enquiryCountryData);
+
+  if (enquiryCountryData.length === 0) {
+    return (
+      <Card className="mt-6">
+        <CardHeader>
+          <CardTitle className="text-lg">Enquiries by Country</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center text-gray-500">
+            No enquiries by country available
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card className="mt-2">
+      <CardHeader>
+       
+          
+        <div className="flex justify-between   space-x-2">
+          {enquiryCountryData.map((country, index) => (
+            <div key={index} className="flex flex-row items-center">
+              <div className=" font-normal">{country.customer_country}</div>&nbsp;:&nbsp;
+              <div className="text-lg font-bold">{country.enquiry_count}</div>
+            </div>
+          ))}
+        </div>
+        
+      </CardHeader>
+     
+    </Card>
+  );
+};
 
 const Home = () => {
   const { data, isLoading, isError } = useQuery({
-    queryKey: ['dashboard'],
+    queryKey: ["dashboard"],
     queryFn: async () => {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem("token");
       const response = await fetch(
-        'https://adityaspice.com/app/public/api/panel-fetch-dashboard',
+        "https://adityaspice.com/app/public/api/panel-fetch-dashboard",
         {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         }
       );
-      if (!response.ok) throw new Error('Failed to fetch dashboard data');
+      if (!response.ok) throw new Error("Failed to fetch dashboard data");
       return response.json();
     },
   });
@@ -131,14 +172,11 @@ const Home = () => {
             value={data.confirmed_count}
             icon={CheckCircle}
           />
-          <StatCard
-            title="Closed"
-            value={data.closed_count}
-            icon={XCircle}
-          />
+          <StatCard title="Closed" value={data.closed_count} icon={XCircle} />
         </div>
 
-        <EnquiryTable enquiries={data.enquiry} />
+        <CountryData enquiries={data?.enquiry_country} />
+        <EnquiryTable enquiries={data?.enquiry} />
       </div>
     </Page>
   );
@@ -146,4 +184,4 @@ const Home = () => {
 
 export default Home;
 
-//sajid 
+//sajid
