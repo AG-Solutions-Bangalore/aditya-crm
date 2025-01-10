@@ -1,4 +1,4 @@
-import React, { useEffect, useState,useRef } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
   Settings2,
@@ -23,13 +29,16 @@ import {
   TestTubes,
   Truck,
   ChevronUp,
-  ChevronDown
+  ChevronDown,
+  Repeat1,
+  SquareChartGantt,
 } from "lucide-react";
 import Page from "../dashboard/page";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate, useParams } from "react-router-dom";
 import { ProgressBar } from "@/components/spinner/ProgressBar";
 import { gsap } from "gsap";
+import { decryptId } from "@/utils/encyrption/Encyrption";
 // Header Component (same as EnquiryEdit)
 
 const EnquiryHeader = ({ enquiryDetails }) => {
@@ -49,8 +58,8 @@ const EnquiryHeader = ({ enquiryDetails }) => {
 
       <div className="flex-1 flex flex-col gap-3">
         <div className="flex items-center justify-end gap-2 text-sm">
-          <Building2 className="h-4 w-4 text-yellow-500" />
-          <span>{enquiryDetails?.company?.company_name || "N/A"}</span>
+          <Clock className="h-4 w-4 text-yellow-500" />
+          <span>{enquiryDetails?.enquiry?.enquiry_date || "N/A"}</span>
         </div>
         <div className="flex items-center justify-end gap-2 text-sm">
           <FileText className="h-4 w-4 text-yellow-500" />
@@ -58,14 +67,133 @@ const EnquiryHeader = ({ enquiryDetails }) => {
             Ref: {enquiryDetails?.enquiry?.enquiry_ref || "N/A"}
           </span>
         </div>
-        <div className="flex items-center justify-end gap-2 text-sm">
-          <Globe className="h-4 w-4 text-yellow-500" />
-          <span className="font-medium">
-            Country: {enquiryDetails?.customer?.customer_country || "N/A"}
-          </span>
-        </div>
       </div>
     </div>
+  );
+};
+
+// Shipping Details Card Component
+const ShippingDetailsCard = ({ replyData, handleInputChange, RadioOption }) => {
+  if (replyData.enquiry_status !== "Order Confirmed") {
+    return null;
+  }
+
+  return (
+    <Card className="mb-2">
+      <div className="p-4 bg-yellow-50 cursor-pointer rounded-t-xl flex items-center justify-between">
+        <h2 className="text-lg font-semibold flex items-center gap-2">
+          <Truck className="h-5 w-5 " />
+          Shipping Details
+        </h2>
+      </div>
+      <CardContent className="p-6">
+        <div className="grid grid-cols-4 gap-6 mb-6">
+          <div>
+            <label className="block text-sm font-medium mb-2">
+              Cargo Dispatch
+            </label>
+            <Input
+              type="date"
+              value={replyData.cargo_dispatch}
+              onChange={(e) => handleInputChange(e, "cargo_dispatch")}
+              className={`border rounded-md p-2 ${
+                replyData.cargo_dispatch ? "bg-white" : "text-gray-400"
+              }`}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-2">
+              Stuffing Date
+            </label>
+            <Input
+              type="date"
+              value={replyData.stuffing_date}
+              onChange={(e) => handleInputChange(e, "stuffing_date")}
+              className={`border rounded-md p-2 ${
+                replyData.stuffing_date ? "bg-white" : "text-gray-400"
+              }`}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-2">
+              Final Product Sample BLR
+            </label>
+            <Input
+              type="date"
+              value={replyData.f_product_sample_blr}
+              onChange={(e) => handleInputChange(e, "f_product_sample_blr")}
+              className={`border rounded-md p-2 ${
+                replyData.f_product_sample_blr ? "bg-white" : "text-gray-400"
+              }`}
+            />
+          </div>
+          <RadioOption
+            label="Received BLR"
+            value="received_blr"
+            onChange={handleInputChange}
+            currentValue={replyData.received_blr}
+          />
+        </div>
+
+        <div className="grid grid-cols-2 gap-6 mb-6">
+          <div>
+            <label className="block text-sm font-medium mb-2">
+              Final Product Sample SB
+            </label>
+            <Input
+              type="date"
+              value={replyData.f_product_sample_sb}
+              onChange={(e) => handleInputChange(e, "f_product_sample_sb")}
+              className={`border rounded-md p-2 ${
+                replyData.f_product_sample_sb ? "bg-white" : "text-gray-400"
+              }`}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-2">
+              Report Date
+            </label>
+            <Input
+              type="date"
+              value={replyData.report_dt}
+              onChange={(e) => handleInputChange(e, "report_dt")}
+              className={`border rounded-md p-2 ${
+                replyData.report_dt ? "bg-white" : "text-gray-400"
+              }`}
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-6">
+          <div>
+            <label className="block text-sm font-medium mb-2">
+              Shipment ETD
+            </label>
+            <Input
+              type="date"
+              value={replyData.shipment_etd}
+              onChange={(e) => handleInputChange(e, "shipment_etd")}
+              className={`border rounded-md p-2 ${
+                replyData.shipment_etd ? "bg-white" : "text-gray-400"
+              }`}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-2">
+              Shipment ETA
+            </label>
+            <Input
+              type="date"
+              value={replyData.shipment_eta}
+              onChange={(e) => handleInputChange(e, "shipment_eta")}
+              className={`border rounded-md p-2 ${
+                replyData.shipment_eta ? "bg-white" : "text-gray-400"
+              }`}
+            />
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 
@@ -73,6 +201,23 @@ const EnquiryReplyEdit = () => {
   const { id } = useParams();
   const { toast } = useToast();
   const navigate = useNavigate();
+   const originalId = decryptId(id);
+      if (!originalId) {
+        return (
+          <Page>
+            <Card className="w-full max-w-md mx-auto mt-10">
+              <CardHeader>
+                <CardTitle className="text-destructive">
+                  Error Decrypting Data
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                
+              </CardContent>
+            </Card>
+          </Page>
+        )
+      }
 
   // Form state for reply-specific fields
   const [replyData, setReplyData] = useState({
@@ -93,6 +238,7 @@ const EnquiryReplyEdit = () => {
     shipment_etd: "",
     shipment_eta: "",
     enquiry_status: "",
+    enquiry_data: [],
   });
 
   // Fetch Enquiry Data
@@ -106,7 +252,7 @@ const EnquiryReplyEdit = () => {
     queryFn: async () => {
       const token = localStorage.getItem("token");
       const response = await fetch(
-        `https://adityaspice.com/app/public/api/panel-fetch-enquiry-by-id/${id}`,
+        `https://adityaspice.com/app/public/api/panel-fetch-enquiry-by-id/${originalId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -123,7 +269,7 @@ const EnquiryReplyEdit = () => {
     mutationFn: async (data) => {
       const token = localStorage.getItem("token");
       const response = await fetch(
-        `https://adityaspice.com/app/public/api/panel-update-enquiry/${id}`,
+        `https://adityaspice.com/app/public/api/panel-update-enquiry/${originalId}`,
         {
           method: "PUT",
           headers: {
@@ -151,19 +297,78 @@ const EnquiryReplyEdit = () => {
       });
     },
   });
+  const [visibleColumns, setVisibleColumns] = useState([
+    "enquirySub_product_name",
+    "enquirySub_shu",
+    "enquirySub_asta",
+    "enquirySub_qlty_type",
+    "enquirySub_course_type",
+    "enquirySub_qnty",
+    "enquirySub_quoted_price",
+    "enquirySub_final_price",
+    "enquirySub_p2b_blend",
+  ]);
+
+  const defaultTableHeaders = [
+    { key: "enquirySub_product_name", label: "Product Name" },
+    { key: "enquirySub_shu", label: "SHU (in K)" },
+    { key: "enquirySub_asta", label: "ASTA" },
+    { key: "enquirySub_qlty_type", label: "Quality Type" },
+    { key: "enquirySub_course_type", label: "Course Type" },
+    { key: "enquirySub_qnty", label: "Quantity (in MT)" },
+    { key: "enquirySub_quoted_price", label: "Quoted Price" },
+    { key: "enquirySub_final_price", label: "Final Price" },
+    { key: "enquirySub_p2b_blend", label: "P2B Blend" },
+  ];
 
   const optionalHeaders = [
     { key: "enquirySub_product_code", label: "Product Code" },
     { key: "enquirySub_stem_type", label: "Stem Type" },
     { key: "enquirySub_moist_value", label: "Moisture Value" },
-    { key: "enquirySub_final_price", label: "Final Price" },
-    { key: "enquirySub_p2b_blend", label: "P2B Blend" },
   ];
+
+  const [enquiryData, setEnquiryData] = useState([]);
+
+  const handleRowDataChange = (rowIndex, field, value) => {
+    const newData = [...enquiryData];
+    newData[rowIndex] = {
+      ...newData[rowIndex],
+      [field]: value,
+    };
+    setEnquiryData(newData);
+  };
+
+  const toggleColumn = (columnKey) => {
+    setVisibleColumns((prev) =>
+      prev.includes(columnKey)
+        ? prev.filter((key) => key !== columnKey)
+        : [...prev, columnKey]
+    );
+  };
 
   useEffect(() => {
     if (enquiryDetails) {
-      // Populate reply fields from enquiry data
-      setReplyData({
+      // Extract product data
+      const products = enquiryDetails.enquirySub.map((product) => ({
+        id: product.id,
+        enquirySub_product_name: product.enquirySub_product_name,
+        enquirySub_product_code: product.enquirySub_product_code,
+        enquirySub_shu: product.enquirySub_shu,
+        enquirySub_asta: product.enquirySub_asta,
+        enquirySub_qlty_type: product.enquirySub_qlty_type,
+        enquirySub_stem_type: product.enquirySub_stem_type,
+        enquirySub_course_type: product.enquirySub_course_type,
+        enquirySub_moist_value: product.enquirySub_moist_value,
+        enquirySub_qnty: product.enquirySub_qnty,
+        enquirySub_quoted_price: product.enquirySub_quoted_price || "",
+        enquirySub_final_price: product.enquirySub_final_price || "",
+        enquirySub_p2b_blend: product.enquirySub_p2b_blend || "",
+      }));
+
+      // Set enquiryData and replyData
+      setEnquiryData(products);
+      setReplyData((prev) => ({
+        ...prev,
         production_date: enquiryDetails.enquiry.production_date || "",
         completion_date: enquiryDetails.enquiry.completion_date || "",
         uct_sample_bangalore: enquiryDetails.enquiry.uct_sample_bangalore || "",
@@ -182,7 +387,19 @@ const EnquiryReplyEdit = () => {
         shipment_etd: enquiryDetails.enquiry.shipment_etd || "",
         shipment_eta: enquiryDetails.enquiry.shipment_eta || "",
         enquiry_status: enquiryDetails.enquiry.enquiry_status || "",
-      });
+        enquiry_data: products,
+      }));
+      const columnsWithValues = optionalHeaders
+        .filter((header) =>
+          enquiryDetails.enquirySub.some(
+            (row) => row[header.key] && row[header.key].toString().trim() !== ""
+          )
+        )
+        .map((header) => header.key);
+
+      setVisibleColumns((prev) => [
+        ...new Set([...prev, ...columnsWithValues]),
+      ]);
     }
   }, [enquiryDetails]);
 
@@ -253,8 +470,7 @@ const EnquiryReplyEdit = () => {
       shipment_etd: replyData.shipment_etd,
       shipment_eta: replyData.shipment_eta,
       enquiry_status: replyData.enquiry_status,
-      // Format enquiry_data as an array of product details
-      enquiry_data: enquiryDetails?.enquirySub?.map((product) => ({
+      enquiry_data: enquiryData.map((product) => ({
         id: product.id,
         enquirySub_product_name: product.enquirySub_product_name,
         enquirySub_product_code: product.enquirySub_product_code,
@@ -271,7 +487,6 @@ const EnquiryReplyEdit = () => {
       })),
     };
 
-    // Remove any undefined values from the submitData object
     Object.keys(submitData).forEach((key) => {
       if (submitData[key] === undefined) {
         delete submitData[key];
@@ -311,7 +526,6 @@ const EnquiryReplyEdit = () => {
       </Page>
     );
   }
- 
 
   // Original enquiry details in view mode
   const CompactViewSection = ({ enquiryDetails }) => {
@@ -325,10 +539,10 @@ const EnquiryReplyEdit = () => {
         <span className="text-sm font-medium">{value || "N/A"}</span>
       </div>
     );
+
     const toggleView = () => {
-      const container = containerRef.current;
       const content = contentRef.current;
-      
+
       if (isExpanded) {
         // Folding animation
         gsap.to(content, {
@@ -339,16 +553,17 @@ const EnquiryReplyEdit = () => {
           transformOrigin: "top",
           transformStyle: "preserve-3d",
           rotateX: -90,
-          onComplete: () => setIsExpanded(false)
+          onComplete: () => setIsExpanded(false),
         });
       } else {
         // Unfolding animation
         setIsExpanded(true);
-        gsap.fromTo(content,
+        gsap.fromTo(
+          content,
           {
             height: 0,
             opacity: 0,
-            rotateX: -90
+            rotateX: -90,
           },
           {
             height: "auto",
@@ -357,93 +572,11 @@ const EnquiryReplyEdit = () => {
             ease: "power2.inOut",
             transformOrigin: "top",
             transformStyle: "preserve-3d",
-            rotateX: 0
+            rotateX: 0,
           }
         );
       }
     };
-
-    const ProductTable = ({ products, optionalHeaders }) => (
-      <div className="overflow-x-auto mt-4">
-        <table className="w-full border-collapse border border-gray-200 rounded-lg">
-          <thead>
-            <tr className="bg-gray-50">
-              <th className="p-2 text-left border border-gray-200 font-medium text-gray-600">
-                Product Name
-              </th>
-              <th className="p-2 text-left border border-gray-200 font-medium text-gray-600">
-                SHU
-              </th>
-              <th className="p-2 text-left border border-gray-200 font-medium text-gray-600">
-                ASTA
-              </th>
-              <th className="p-2 text-left border border-gray-200 font-medium text-gray-600">
-                Quality Type
-              </th>
-              <th className="p-2 text-left border border-gray-200 font-medium text-gray-600">
-                Course Type
-              </th>
-              <th className="p-2 text-left border border-gray-200 font-medium text-gray-600">
-                Quantity
-              </th>
-              <th className="p-2 text-left border border-gray-200 font-medium text-gray-600">
-                Quoted Price
-              </th>
-              {optionalHeaders?.map(
-                (header) =>
-                  products?.some((product) => product[header.key]) && (
-                    <th
-                      key={header.key}
-                      className="p-2 text-left border border-gray-200 font-medium text-gray-600"
-                    >
-                      {header.label}
-                    </th>
-                  )
-              )}
-            </tr>
-          </thead>
-          <tbody className="bg-white">
-            {products?.map((product, index) => (
-              <tr key={index} className="hover:bg-gray-50">
-                <td className="p-2 border border-gray-200">
-                  {product.enquirySub_product_name}
-                </td>
-
-                <td className="p-2 border border-gray-200">
-                  {product.enquirySub_shu}
-                </td>
-                <td className="p-2 border border-gray-200">
-                  {product.enquirySub_asta}
-                </td>
-                <td className="p-2 border border-gray-200">
-                  {product.enquirySub_qlty_type}
-                </td>
-                <td className="p-2 border border-gray-200">
-                  {product.enquirySub_course_type}
-                </td>
-                <td className="p-2 border border-gray-200">
-                  {product.enquirySub_qnty}
-                </td>
-                <td className="p-2 border border-gray-200">
-                  {product.enquirySub_quoted_price}
-                </td>
-                {optionalHeaders?.map(
-                  (header) =>
-                    products?.some((p) => p[header.key]) && (
-                      <td
-                        key={header.key}
-                        className="p-2 border border-gray-200"
-                      >
-                        {product[header.key]}
-                      </td>
-                    )
-                )}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    );
 
     const TreatmentInfo = () =>
       enquiryDetails?.enquiry?.treatment_required === "Yes" && (
@@ -469,11 +602,17 @@ const EnquiryReplyEdit = () => {
       );
 
     return (
-      <Card className="mb-6 overflow-hidden" ref={containerRef}>
-         <div className="p-4 bg-yellow-50 cursor-pointer flex items-center justify-between" onClick={toggleView}>
+      <Card className="mb-2 overflow-hidden" ref={containerRef}>
+        <div
+          className="p-4 bg-yellow-50 cursor-pointer flex items-center justify-between"
+          onClick={toggleView}
+        >
           <h2 className="text-lg font-semibold flex items-center gap-2">
             <FileText className="h-5 w-5" />
-            Original Enquiry Details
+            {enquiryDetails?.customer?.customer_name} -
+            <span className="text-sm uppercase">
+              {enquiryDetails?.customer?.customer_country}
+            </span>
           </h2>
           <div className="flex items-center gap-2">
             <span className="px-2 py-1 text-xs font-medium bg-yellow-100 text-yellow-800 rounded-full">
@@ -486,29 +625,15 @@ const EnquiryReplyEdit = () => {
             )}
           </div>
         </div>
-        <div 
+        <div
           ref={contentRef}
           className="transform-gpu"
-          style={{ transformStyle: 'preserve-3d' }}
+          style={{ transformStyle: "preserve-3d" }}
         >
-        <CardContent className="p-4">
-        
-
-          <div className="grid grid-cols-3 gap-6 mb-4">
+          <CardContent className="p-4">
             {/* Basic Info */}
-            <div className="space-y-2">
-              <InfoItem
-                icon={FileText}
-                label="Customer"
-                value={enquiryDetails?.customer?.customer_name}
-              />
-              <InfoItem
-                icon={Clock}
-                label="Enquiry Date"
-                value={enquiryDetails?.enquiry?.enquiry_date}
-              />
-            </div>
-            <div className="space-y-2">
+
+            <div className="space-y-2 flex items-center justify-between">
               <InfoItem
                 icon={FileText}
                 label="Marking"
@@ -519,10 +644,7 @@ const EnquiryReplyEdit = () => {
                 label="Packing Type"
                 value={enquiryDetails?.enquiry?.packing_type}
               />
-            </div>
 
-            {/* Additional Info */}
-            <div className="space-y-2">
               <InfoItem
                 icon={TestTubes}
                 label="Sample Required"
@@ -534,19 +656,11 @@ const EnquiryReplyEdit = () => {
                 value={enquiryDetails?.enquiry?.treatment_required}
               />
             </div>
-          </div>
 
-          <TreatmentInfo />
+            <TreatmentInfo />
 
-          {/* Products Table */}
-          <div className="mt-4">
-            <h3 className="text-sm font-medium text-gray-700 mb-2">Products</h3>
-            <ProductTable
-              products={enquiryDetails?.enquirySub}
-              optionalHeaders={optionalHeaders}
-            />
-          </div>
-        </CardContent>
+            {/* Products Table */}
+          </CardContent>
         </div>
       </Card>
     );
@@ -559,13 +673,123 @@ const EnquiryReplyEdit = () => {
 
         {/* View Section */}
         <CompactViewSection enquiryDetails={enquiryDetails} />
-        
+
+        {/* Products Section */}
+        <Card className="mb-2">
+          <div className="p-4 bg-yellow-50 cursor-pointer rounded-t-xl flex items-center justify-between">
+            <h2 className="text-lg font-semibold flex items-center gap-2">
+              <SquareChartGantt className="h-5 w-5 " />
+              Product Details
+            </h2>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm">
+                  <Settings2 className="h-4 w-4 mr-2" />
+                  Customize Columns
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                {optionalHeaders.map((header) => (
+                  <DropdownMenuItem
+                    key={header.key}
+                    onClick={() => toggleColumn(header.key)}
+                  >
+                    <span>{header.label}</span>
+                    {visibleColumns.includes(header.key) && (
+                      <span className="text-green-500">✓</span>
+                    )}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+          <CardContent className="p-1">
+            <div className="mb-2">
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse">
+                  <thead>
+                    <tr className="bg-gray-50">
+                      {[...defaultTableHeaders, ...optionalHeaders]
+                        .filter((header) => visibleColumns.includes(header.key))
+                        .map((header) => (
+                          <th
+                            key={header.key}
+                            className="p-2 text-left border text-sm font-medium"
+                          >
+                            {header.label}
+                            {header.required && (
+                              <span className="text-red-500 ml-1">*</span>
+                            )}
+                          </th>
+                        ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {enquiryData.map((row, rowIndex) => (
+                      <tr key={rowIndex} className="border-b hover:bg-gray-50">
+                        {[...defaultTableHeaders, ...optionalHeaders]
+                          .filter((header) =>
+                            visibleColumns.includes(header.key)
+                          )
+                          .map((header) => (
+                            <td key={header.key} className="p-2 border">
+                              {header.key === "enquirySub_product_name" ? (
+                                <>
+                                  <Input
+                                    value={row[header.key]}
+                                    className="w-full border border-gray-300 cursor-not-allowed bg-white"
+                                  />
+                                </>
+                              ) : (
+                                <Input
+                                  value={row[header.key]}
+                                  onChange={(e) =>
+                                    handleRowDataChange(
+                                      rowIndex,
+                                      header.key,
+                                      e.target.value
+                                    )
+                                  }
+                                  disabled={[
+                                    "enquirySub_shu",
+                                    "enquirySub_asta",
+                                    "enquirySub_qlty_type",
+                                    "enquirySub_course_type",
+                                    "enquirySub_qnty",
+                                  ].includes(header.key)}
+                                  className={`w-full border border-gray-300 bg-yellow-50 ${
+                                    [
+                                      "enquirySub_shu",
+                                      "enquirySub_asta",
+                                      "enquirySub_qlty_type",
+                                      "enquirySub_course_type",
+                                      "enquirySub_qnty",
+                                    ].includes(header.key)
+                                      ? "text-black font-bold bg-white cursor-not-allowed"
+                                      : ""
+                                  }`}
+                                />
+                              )}
+                            </td>
+                          ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Reply Section */}
-        <Card className="mb-6">
+        <Card className="mb-2">
+          <div className="p-4 bg-yellow-50 cursor-pointer flex items-center rounded-t-xl justify-between">
+            <h2 className="text-lg font-semibold flex items-center gap-2">
+              <Repeat1 className="h-5 w-5" />
+              Reply Details
+            </h2>
+          </div>
           <CardContent className="p-6">
-            <h2 className="text-xl font-semibold mb-6">Reply Details</h2>
-
             {/* Dates Section */}
             <div className="grid grid-cols-4 gap-6 mb-6">
               <div>
@@ -576,6 +800,9 @@ const EnquiryReplyEdit = () => {
                   type="date"
                   value={replyData.production_date}
                   onChange={(e) => handleInputChange(e, "production_date")}
+                  className={`border rounded-md p-2 ${
+                    replyData.production_date ? "bg-white" : "text-gray-400"
+                  }`}
                 />
               </div>
               <div>
@@ -586,8 +813,60 @@ const EnquiryReplyEdit = () => {
                   type="date"
                   value={replyData.completion_date}
                   onChange={(e) => handleInputChange(e, "completion_date")}
+                  className={`border rounded-md p-2 ${
+                    replyData.completion_date ? "bg-white" : "text-gray-400"
+                  }`}
                 />
               </div>
+
+              {/* Sample Status Section */}
+
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  UCT Sample Bangalore
+                </label>
+                <Input
+                  type="date"
+                  value={replyData.uct_sample_bangalore}
+                  onChange={(e) => handleInputChange(e, "uct_sample_bangalore")}
+                  className={`border rounded-md p-2 ${
+                    replyData.uct_sample_bangalore
+                      ? "bg-white"
+                      : "text-gray-400"
+                  }`}
+                />
+              </div>
+              <RadioOption
+                label="Sample Received"
+                value="received"
+                onChange={handleInputChange}
+                currentValue={replyData.received}
+              />
+            </div>
+            <div className="grid grid-cols-3 gap-6 mb-6">
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  Sample Dispatch to Customer
+                </label>
+                <Input
+                  type="date"
+                  value={replyData.ple_dispatch_customer}
+                  onChange={(e) =>
+                    handleInputChange(e, "ple_dispatch_customer")
+                  }
+                  className={`border rounded-md p-2 ${
+                    replyData.ple_dispatch_customer
+                      ? "bg-white"
+                      : "text-gray-400"
+                  }`}
+                />
+              </div>
+              <RadioOption
+                label="Delivered"
+                value="delivered"
+                onChange={handleInputChange}
+                currentValue={replyData.delivered}
+              />
               <div>
                 <label className="block text-sm font-medium mb-2">Status</label>
                 <Select
@@ -618,164 +897,39 @@ const EnquiryReplyEdit = () => {
                   </SelectContent>
                 </Select>
               </div>
-         
-
-            {/* Sample Status Section */}
-
-      
-              <div>
-                <label className="block text-sm font-medium mb-2">
-                  UCT Sample Bangalore
-                </label>
-                <Input
-                  type="date"
-                  value={replyData.uct_sample_bangalore}
-                  onChange={(e) => handleInputChange(e, "uct_sample_bangalore")}
-                />
-              </div>
-              <RadioOption
-                label="Sample Received"
-                value="received"
-                onChange={handleInputChange}
-                currentValue={replyData.received}
-              />
-              <div>
-                <label className="block text-sm font-medium mb-2">
-                  Sample Dispatch to Customer
-                </label>
-                <Input
-                  type="date"
-                  value={replyData.ple_dispatch_customer}
-                  onChange={(e) =>
-                    handleInputChange(e, "ple_dispatch_customer")
-                  }
-                />
-              </div>
-              <RadioOption
-                label="Delivered"
-                value="delivered"
-                onChange={handleInputChange}
-                currentValue={replyData.delivered}
-              />
-              <div>
-                <label className="block text-sm font-medium mb-2">
-                  Customer Feedback
-                </label>
-                <Input
-                  type="text"
-                  value={replyData.customer_feedback}
-                  placeholder="Pls enter customer feedback..."
-                  onChange={(e) => handleInputChange(e, "customer_feedback")}
-                />
-              </div>
             </div>
-
             {/* Delivery Section */}
-            <div className="grid grid-cols-5 gap-6 mb-6">
-            
+            <div className="grid grid-cols-2 gap-6 mb-6">
               <div>
                 <label className="block text-sm font-medium mb-2">
                   Special Instructions
                 </label>
-                <Input
-                  type="text"
+                <textarea
                   value={replyData.special_instruction}
                   placeholder="Pls enter special instruction..."
                   onChange={(e) => handleInputChange(e, "special_instruction")}
-                />
-              </div>
-        
-
-            {/* Shipping Section */}
-          
-              <div>
-                <label className="block text-sm font-medium mb-2">
-                  Cargo Dispatch
-                </label>
-                <Input
-                  type="date"
-                  value={replyData.cargo_dispatch}
-                  onChange={(e) => handleInputChange(e, "cargo_dispatch")}
+                  className="border rounded-md p-2 w-full h-24 resize-none"
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium mb-2">
-                  Stuffing Date
+                  Customer Feedback
                 </label>
-                <Input
-                  type="date"
-                  value={replyData.stuffing_date}
-                  onChange={(e) => handleInputChange(e, "stuffing_date")}
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-2">
-                  Final Product Sample BLR
-                </label>
-                <Input
-                  type="date"
-                  value={replyData.f_product_sample_blr}
-                  onChange={(e) => handleInputChange(e, "f_product_sample_blr")}
-                />
-              </div>
-              <RadioOption
-                label="Received BLR"
-                value="received_blr"
-                onChange={handleInputChange}
-                currentValue={replyData.received_blr}
-              />
-            </div>
-
-            {/* Sample Processing Section */}
-            <div className="grid grid-cols-2 gap-6 mb-6">
-            
-              <div>
-                <label className="block text-sm font-medium mb-2">
-                  Final Product Sample SB
-                </label>
-                <Input
-                  type="date"
-                  value={replyData.f_product_sample_sb}
-                  onChange={(e) => handleInputChange(e, "f_product_sample_sb")}
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-2">
-                  Report Date
-                </label>
-                <Input
-                  type="date"
-                  value={replyData.report_dt}
-                  onChange={(e) => handleInputChange(e, "report_dt")}
-                />
-              </div>
-            </div>
-
-            {/* Shipment Dates */}
-            <div className="grid grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-medium mb-2">
-                  Shipment ETD
-                </label>
-                <Input
-                  type="date"
-                  value={replyData.shipment_etd}
-                  onChange={(e) => handleInputChange(e, "shipment_etd")}
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-2">
-                  Shipment ETA
-                </label>
-                <Input
-                  type="date"
-                  value={replyData.shipment_eta}
-                  onChange={(e) => handleInputChange(e, "shipment_eta")}
+                <textarea
+                  value={replyData.customer_feedback}
+                  placeholder="Pls enter customer feedback..."
+                  onChange={(e) => handleInputChange(e, "customer_feedback")}
+                  className="border rounded-md p-2 w-full h-24 resize-none"
                 />
               </div>
             </div>
           </CardContent>
         </Card>
+        <ShippingDetailsCard
+          replyData={replyData}
+          handleInputChange={handleInputChange}
+          RadioOption={RadioOption}
+        />
 
         {/* Submit Button */}
         <div className="flex flex-col items-end">

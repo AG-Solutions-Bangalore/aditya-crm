@@ -538,8 +538,7 @@ const EnquiryCreateOne = () => {
   const duplicateSelectedRows = () => {
     const newRows = selectedRows.map(index => ({
       ...enquiryData[index],
-      enquirySub_qnty: "",
-      enquirySub_quoted_price: ""
+     
     }));
     setEnquiryData([...enquiryData, ...newRows]);
     setSelectedRows([]);

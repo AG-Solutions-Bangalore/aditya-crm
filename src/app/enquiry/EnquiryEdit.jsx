@@ -46,6 +46,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useNavigate, useParams } from "react-router-dom";
 import { ProgressBar } from "@/components/spinner/ProgressBar";
+import { decryptId } from "@/utils/encyrption/Encyrption";
 
 // Header Component
 
@@ -89,6 +90,21 @@ const EnquiryHeader = ({ enquiryDetails }) => {
 };
 const EnquiryEdit = () => {
   const { id } = useParams();
+  const originalId = decryptId(id);
+  if (!originalId) {
+    return (
+      <Page>
+        <Card className="w-full max-w-md mx-auto mt-10">
+          <CardHeader>
+            <CardTitle className="text-destructive">
+              Error Decrypting Data
+            </CardTitle>
+          </CardHeader>
+          <CardContent></CardContent>
+        </Card>
+      </Page>
+    );
+  }
   const { toast } = useToast();
   const navigate = useNavigate();
   const [progress, setProgress] = useState(0);
@@ -112,7 +128,7 @@ const EnquiryEdit = () => {
     { key: "enquirySub_qlty_type", label: "Quality Type", required: true },
     { key: "enquirySub_course_type", label: "Course Type", required: true },
     { key: "enquirySub_qnty", label: "Quantity (in MT)", required: true },
-    { key: "enquirySub_quoted_price", label: "Quoted Price", required: true },
+    { key: "enquirySub_quoted_price", label: "Quoted Price" },
   ];
 
   const optionalHeaders = [
@@ -130,9 +146,11 @@ const EnquiryEdit = () => {
     packing_type: "",
     marking: "",
     shipment_date: "",
+    special_instruction: "",
     sample_required: "No",
     treatment_required: "No",
     etd: "No",
+    customer_feedback: "",
     gama_rediations: "No",
     steam_sterlizaton: "No",
     enquiry_status: "",
@@ -152,12 +170,17 @@ const EnquiryEdit = () => {
   ];
 
   // Fetch Enquiry Data
-  const { data: enquiryDetails ,isLoading,isError,refetch} = useQuery({
+  const {
+    data: enquiryDetails,
+    isLoading,
+    isError,
+    refetch,
+  } = useQuery({
     queryKey: ["enquiry", id],
     queryFn: async () => {
       const token = localStorage.getItem("token");
       const response = await fetch(
-        `https://adityaspice.com/app/public/api/panel-fetch-enquiry-by-id/${id}`,
+        `https://adityaspice.com/app/public/api/panel-fetch-enquiry-by-id/${originalId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -241,7 +264,7 @@ const EnquiryEdit = () => {
     mutationFn: async (data) => {
       const token = localStorage.getItem("token");
       const response = await fetch(
-        `https://adityaspice.com/app/public/api/panel-update-enquiry/${id}`,
+        `https://adityaspice.com/app/public/api/panel-update-enquiry/${originalId}`,
         {
           method: "PUT",
           headers: {
@@ -278,6 +301,8 @@ const EnquiryEdit = () => {
         packing_type: enquiryDetails.enquiry.packing_type,
         marking: enquiryDetails.enquiry.marking,
         shipment_date: enquiryDetails.enquiry.shipment_date,
+        special_instruction: enquiryDetails.enquiry.special_instruction,
+        customer_feedback: enquiryDetails.enquiry.customer_feedback,
         sample_required: enquiryDetails.enquiry.sample_required,
         treatment_required: enquiryDetails.enquiry.treatment_required,
         etd: enquiryDetails.enquiry.etd,
@@ -504,6 +529,16 @@ const EnquiryEdit = () => {
 
                 <div>
                   <label className="block text-sm font-medium mb-2">
+                    Shipment Date
+                  </label>
+                  <Input
+                    type="date"
+                    value={formData.shipment_date}
+                    onChange={(e) => handleInputChange(e, "shipment_date")}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">
                     Status <span className="text-red-500">*</span>
                   </label>
                   <Select
@@ -523,17 +558,6 @@ const EnquiryEdit = () => {
                       ))}
                     </SelectContent>
                   </Select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium mb-2">
-                    Shipment Date <span className="text-red-500">*</span>
-                  </label>
-                  <Input
-                    type="date"
-                    value={formData.shipment_date}
-                    onChange={(e) => handleInputChange(e, "shipment_date")}
-                  />
                 </div>
               </div>
             </div>
@@ -677,21 +701,9 @@ const EnquiryEdit = () => {
               <div className="grid grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-medium mb-2">
-                    Marking <span className="text-red-500">*</span>
-                  </label>
-                  <Input
-                    type="text"
-                    placeholder="Enter marking details"
-                    value={formData.marking}
-                    onChange={(e) => handleInputChange(e, "marking")}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium mb-2">
                     Packing Type <span className="text-red-500">*</span>
                   </label>
-                  <Select
+                  {/* <Select
                     value={formData.packing_type}
                     onValueChange={(value) =>
                       handleInputChange({ target: { value } }, "packing_type")
@@ -707,15 +719,27 @@ const EnquiryEdit = () => {
                         </SelectItem>
                       ))}
                     </SelectContent>
-                  </Select>
+                  </Select> */}
+                   <Input
+                    type="text"
+                    placeholder="Enter Package details"
+                    value={formData.packing_type}
+                    onChange={(e) => handleInputChange(e, "packing_type")}
+                  />
                 </div>
 
-                <RadioOption
-                  label="Sample Required"
-                  value="sample_required"
-                  onChange={handleInputChange}
-                  currentValue={formData.sample_required}
-                />
+                <div>
+                  <label className="block text-sm font-medium mb-2">
+                    Marking
+                  </label>
+                  <Input
+                    type="text"
+                    placeholder="Enter marking details"
+                    value={formData.marking}
+                    onChange={(e) => handleInputChange(e, "marking")}
+                  />
+                </div>
+
                 <RadioOption
                   label="Treatment Required"
                   value="treatment_required"
@@ -723,6 +747,12 @@ const EnquiryEdit = () => {
                   currentValue={formData.treatment_required}
                 />
 
+                <RadioOption
+                  label="Sample Required"
+                  value="sample_required"
+                  onChange={handleInputChange}
+                  currentValue={formData.sample_required}
+                />
                 {/* Conditional Treatment Options */}
                 {formData.treatment_required === "Yes" && (
                   <div className="col-span-2 space-y-4">
@@ -766,6 +796,30 @@ const EnquiryEdit = () => {
                     </div>
                   </div>
                 )}
+                <div>
+                  <label className="block text-sm font-medium mb-2">
+                    Special Instructions
+                  </label>
+                  <textarea
+                    value={formData.special_instruction}
+                    onChange={(e) =>
+                      handleInputChange(e, "special_instruction")
+                    }
+                    placeholder="Pls enter special instruction..."
+                    className="border rounded-md p-2 w-full h-24 resize-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">
+                    Customer Feedback
+                  </label>
+                  <textarea
+                    value={formData.customer_feedback}
+                    onChange={(e) => handleInputChange(e, "customer_feedback")}
+                    placeholder="Pls enter customer feedback..."
+                    className="border rounded-md p-2 w-full h-24 resize-none"
+                  />
+                </div>
               </div>
             </div>
           </CardContent>

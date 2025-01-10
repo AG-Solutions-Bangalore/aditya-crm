@@ -28,6 +28,7 @@ import { getTodayDate } from "@/utils/currentDate";
 import { ProgressBar } from "@/components/spinner/ProgressBar";
 import CreateCustomer from "../customer/CreateCustomer";
 import CreateProduct from "../product/CreateProduct";
+import { useCurrentYear } from "../hooks/useCurrentYear";
 
 // Validation Schemas
 const productRowSchema = z.object({
@@ -40,7 +41,7 @@ const productRowSchema = z.object({
   enquirySub_course_type: z.string().min(1, "Course type is required"),
   enquirySub_moist_value: z.string().optional(),
   enquirySub_qnty: z.number().min(1, "Quantity is required"),
-  enquirySub_quoted_price: z.number().min(1, "Quoted price is required"),
+  enquirySub_quoted_price: z.string().optional(),
   enquirySub_final_price: z.string().optional(),
   enquirySub_p2b_blend: z.string().optional(),
 });
@@ -49,8 +50,11 @@ const enquiryFormSchema = z.object({
   customer_id: z.string().min(1, "Customer is required"),
   enquiry_date: z.string().min(1, "Enquiry date is required"),
   packing_type: z.string().min(1, "Packing type is required"),
-  marking: z.string().min(1, "Marking is required"),
-  shipment_date: z.string().min(1, "Shipment date is required"),
+  marking: z.string().optional(),
+  special_instruction: z.string().optional(),
+  customer_feedback: z.string().optional(),
+  enquiry_year: z.string().optional(),
+  shipment_date: z.string().optional(),
   sample_required: z.enum(["Yes", "No"]),
   treatment_required: z.enum(["Yes", "No"]),
   etd: z.enum(["Yes", "No"]).optional(),
@@ -62,6 +66,7 @@ const enquiryFormSchema = z.object({
 });
 
 // API functions
+
 const fetchCustomers = async () => {
   const token = localStorage.getItem("token");
   if (!token) throw new Error("No authentication token found");
@@ -119,12 +124,12 @@ const createEnquiry = async (data) => {
 };
 
 // Header Component
-const EnquiryHeader = ({ progress }) => {
+const EnquiryHeader = ({ progress, year }) => {
   return (
     <div className="flex sticky top-0 z-10 border border-gray-200 rounded-lg justify-between items-start gap-8 mb-2 bg-white p-4 shadow-sm">
       <div className="flex-1">
         <h1 className="text-3xl font-bold text-gray-800">Enquiry Form</h1>
-        <p className="text-gray-600 mt-2">Create your enquiries</p>
+        <p className="text-gray-600 mt-2">Create your enquiries:&nbsp;{year}</p>
       </div>
 
       <div className="flex-1 pt-2">
@@ -159,6 +164,7 @@ const EnquiryCreate = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const [progress, setProgress] = useState(0);
+  const { data: currentYear } = useCurrentYear();
 
   const [visibleColumns, setVisibleColumns] = useState([
     "enquirySub_product_name",
@@ -177,7 +183,7 @@ const EnquiryCreate = () => {
     { key: "enquirySub_qlty_type", label: "Quality Type", required: true },
     { key: "enquirySub_course_type", label: "Course Type", required: true },
     { key: "enquirySub_qnty", label: "Quantity (in MT)", required: true },
-    { key: "enquirySub_quoted_price", label: "Quoted Price", required: true },
+    { key: "enquirySub_quoted_price", label: "Quoted Price" },
   ];
 
   const optionalHeaders = [
@@ -205,20 +211,6 @@ const EnquiryCreate = () => {
     },
   ]);
 
-  const [formData, setFormData] = useState({
-    enquiry_year: "",
-    customer_id: "",
-    enquiry_date: getTodayDate(),
-    packing_type: "",
-    marking: "",
-    shipment_date: "",
-    sample_required: "No",
-    treatment_required: "No",
-    etd: "No",
-    gama_rediations: "No",
-    steam_sterlizaton: "No",
-  });
-
   const { data: customerData } = useQuery({
     queryKey: ["customers"],
     queryFn: fetchCustomers,
@@ -228,7 +220,32 @@ const EnquiryCreate = () => {
     queryKey: ["products"],
     queryFn: fetchProducts,
   });
+  console.log("currentYear", currentYear);
 
+  const [formData, setFormData] = useState({
+    enquiry_year: currentYear,
+    customer_id: "",
+    enquiry_date: getTodayDate(),
+    packing_type: "",
+    marking: "",
+    customer_feedback:"",
+    special_instruction:"",
+    shipment_date: "",
+    sample_required: "No",
+    treatment_required: "No",
+    etd: "No",
+    gama_rediations: "No",
+    steam_sterlizaton: "No",
+  });
+
+  useEffect(() => {
+    if (currentYear) {
+      setFormData((prev) => ({
+        ...prev,
+        enquiry_year: currentYear,
+      }));
+    }
+  }, [currentYear]);
   const createEnquiryMutation = useMutation({
     mutationFn: createEnquiry,
     onSuccess: () => {
@@ -317,32 +334,27 @@ const EnquiryCreate = () => {
 
   const handleRowDataChange = (rowIndex, field, value) => {
     const numericFields = [
-      'enquirySub_qnty',
-      'enquirySub_quoted_price',
-      
-      'enquirySub_shu',
-      'enquirySub_asta'
+      "enquirySub_qnty",
+
+      "enquirySub_shu",
+      "enquirySub_asta",
     ];
     let processedValue = value;
-       // If it's a numeric field, process it
-       if (numericFields.includes(field)) {
-        // Remove any non-numeric characters except decimal point
-        const sanitizedValue = value.replace(/[^\d.]/g, '');
-        
-        // Prevent multiple decimal points
-        const decimalCount = (sanitizedValue.match(/\./g) || []).length;
-        if (decimalCount > 1) {
-          return; // Ignore input with multiple decimal points
-        }
-        
-        // Convert to number if it's a valid number, otherwise keep as empty string
-        processedValue = sanitizedValue === '' ? '' : Number(sanitizedValue);
-        
-        // Validate if it's a valid number
-        if (isNaN(processedValue)) {
-          return; // Ignore invalid numbers
-        }
+
+    if (numericFields.includes(field)) {
+      const sanitizedValue = value.replace(/[^\d.]/g, "");
+
+      const decimalCount = (sanitizedValue.match(/\./g) || []).length;
+      if (decimalCount > 1) {
+        return;
       }
+
+      processedValue = sanitizedValue === "" ? "" : Number(sanitizedValue);
+
+      if (isNaN(processedValue)) {
+        return;
+      }
+    }
     const newData = [...enquiryData];
     newData[rowIndex] = {
       ...newData[rowIndex],
@@ -442,6 +454,14 @@ const EnquiryCreate = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!currentYear) {
+      toast({
+        title: "Missing Data",
+        description: "Please select the current year before submitting.",
+        variant: "destructive",
+      });
+      return;
+    }
 
     try {
       const validatedData = enquiryFormSchema.parse({
@@ -495,13 +515,23 @@ const EnquiryCreate = () => {
   return (
     <Page>
       <form onSubmit={handleSubmit} className="w-full p-4">
-        <EnquiryHeader progress={progress} />
+        <EnquiryHeader progress={progress} year={currentYear} />
 
         <Card className="mb-6">
           <CardContent className="p-6">
             {/* Basic Details Section */}
             <div className="mb-8">
               <div className="grid grid-cols-3 gap-6">
+                <div className="hidden">
+                  <label className="block text-sm font-medium mb-2">
+                    Enquiry Year
+                  </label>
+                  <Input
+                    type="text"
+                    placeholder="Enter marking details"
+                    value={formData.enquiry_year}
+                  />
+                </div>
                 <div>
                   <label className="block text-sm font-medium mb-2">
                     Customer <span className="text-red-500">*</span>
@@ -526,9 +556,9 @@ const EnquiryCreate = () => {
                       ))}
                     </SelectContent>
                   </Select>
-                  <CreateCustomer/>
+                  <CreateCustomer />
                 </div>
-               
+
                 <div>
                   <label className="block text-sm font-medium mb-2">
                     Enquiry Date <span className="text-red-500">*</span>
@@ -542,7 +572,7 @@ const EnquiryCreate = () => {
 
                 <div>
                   <label className="block text-sm font-medium mb-2">
-                    Shipment Date <span className="text-red-500">*</span>
+                    Shipment Date
                   </label>
                   <Input
                     type="date"
@@ -556,10 +586,10 @@ const EnquiryCreate = () => {
             {/* Products Section */}
             <div className="mb-8">
               <div className="flex justify-between items-center mb-4">
-               <div className="flex flex-row items-center">
-               <h2 className="text-xl font-semibold">Products</h2>
-               <CreateProduct/>
-               </div>
+                <div className="flex flex-row items-center">
+                  <h2 className="text-xl font-semibold">Products</h2>
+                  <CreateProduct />
+                </div>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="outline" size="sm">
@@ -648,24 +678,30 @@ const EnquiryCreate = () => {
                                     )
                                   }
                                   type={
-                                    ['enquirySub_qnty', 'enquirySub_quoted_price', 
-                                      'enquirySub_shu', 
-                                     'enquirySub_asta'].includes(header.key) 
-                                      ? "number" 
+                                    [
+                                      "enquirySub_qnty",
+                                      "enquirySub_shu",
+                                      "enquirySub_asta",
+                                    ].includes(header.key)
+                                      ? "number"
                                       : "text"
                                   }
                                   step={
-                                    ['enquirySub_qnty', 'enquirySub_quoted_price', 
-                                      'enquirySub_shu', 
-                                     'enquirySub_asta'].includes(header.key) 
-                                      ? "any" 
+                                    [
+                                      "enquirySub_qnty",
+                                      "enquirySub_shu",
+                                      "enquirySub_asta",
+                                    ].includes(header.key)
+                                      ? "any"
                                       : undefined
                                   }
                                   min={
-                                    ['enquirySub_qnty', 'enquirySub_quoted_price', 
-                                      'enquirySub_shu', 
-                                     'enquirySub_asta'].includes(header.key) 
-                                      ? "0" 
+                                    [
+                                      "enquirySub_qnty",
+                                      "enquirySub_shu",
+                                      "enquirySub_asta",
+                                    ].includes(header.key)
+                                      ? "0"
                                       : undefined
                                   }
                                   className="w-full border border-gray-300 bg-yellow-50"
@@ -706,21 +742,9 @@ const EnquiryCreate = () => {
               <div className="grid grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-medium mb-2">
-                    Marking <span className="text-red-500">*</span>
-                  </label>
-                  <Input
-                    type="text"
-                    placeholder="Enter marking details"
-                    value={formData.marking}
-                    onChange={(e) => handleInputChange(e, "marking")}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium mb-2">
                     Packing Type <span className="text-red-500">*</span>
                   </label>
-                  <Select
+                  {/* <Select
                     value={formData.packing_type}
                     onValueChange={(value) =>
                       handleInputChange({ target: { value } }, "packing_type")
@@ -736,21 +760,38 @@ const EnquiryCreate = () => {
                         </SelectItem>
                       ))}
                     </SelectContent>
-                  </Select>
+                  </Select> */}
+                    <Input
+                    type="text"
+                    placeholder="Enter Package details"
+                    value={formData.packing_type}
+                    onChange={(e) => handleInputChange(e, "packing_type")}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">
+                    Marking
+                  </label>
+                  <Input
+                    type="text"
+                    placeholder="Enter marking details"
+                    value={formData.marking}
+                    onChange={(e) => handleInputChange(e, "marking")}
+                  />
                 </div>
 
-                <RadioOption
-                  label="Sample Required"
-                  value="sample_required"
-                  onChange={handleInputChange}
-                  currentValue={formData.sample_required}
-                  required={true}
-                />
                 <RadioOption
                   label="Treatment Required"
                   value="treatment_required"
                   onChange={handleInputChange}
                   currentValue={formData.treatment_required}
+                  required={true}
+                />
+                <RadioOption
+                  label="Sample Required"
+                  value="sample_required"
+                  onChange={handleInputChange}
+                  currentValue={formData.sample_required}
                   required={true}
                 />
 
@@ -797,6 +838,31 @@ const EnquiryCreate = () => {
                     </div>
                   </div>
                 )}
+
+                <div>
+                  <label className="block text-sm font-medium mb-2">
+                    Special Instructions
+                  </label>
+                  <textarea
+                    value={formData.special_instruction}
+                    onChange={(e) =>
+                      handleInputChange(e, "special_instruction")
+                    }
+                    placeholder="Pls enter special instruction..."
+                    className="border rounded-md p-2 w-full h-24 resize-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">
+                    Customer Feedback
+                  </label>
+                  <textarea
+                    value={formData.customer_feedback}
+                    onChange={(e) => handleInputChange(e, "customer_feedback")}
+                    placeholder="Pls enter customer feedback..."
+                    className="border rounded-md p-2 w-full h-24 resize-none"
+                  />
+                </div>
               </div>
             </div>
           </CardContent>
@@ -833,5 +899,4 @@ const EnquiryCreate = () => {
 
 export default EnquiryCreate;
 
-
-//sajid 
+//sajid
