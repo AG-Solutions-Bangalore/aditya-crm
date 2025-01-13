@@ -34,15 +34,15 @@ import { useCurrentYear } from "../hooks/useCurrentYear";
 const productRowSchema = z.object({
   enquirySub_product_name: z.string().min(1, "Product name is required"),
   enquirySub_product_code: z.string().optional(),
-  enquirySub_shu: z.number().min(1, "SHU is required"),
-  enquirySub_asta: z.number().min(1, "ASTA is required"),
-  enquirySub_qlty_type: z.string().min(1, "Quality type is required"),
+  enquirySub_shu: z.string().optional(),
+  enquirySub_asta: z.string().optional(),
+  enquirySub_qlty_type: z.string().optional(),
   enquirySub_stem_type: z.string().optional(),
-  enquirySub_course_type: z.string().min(1, "Course type is required"),
+  enquirySub_course_type: z.string().optional(),
   enquirySub_moist_value: z.string().optional(),
-  enquirySub_qnty: z.number().min(1, "Quantity is required"),
+  enquirySub_qnty: z.string().optional(),
   enquirySub_quoted_price: z.string().optional(),
-  enquirySub_final_price: z.string().optional(),
+  enquirySub_final_price: z.number().optional(),
   enquirySub_p2b_blend: z.string().optional(),
 });
 
@@ -177,12 +177,12 @@ const EnquiryCreate = () => {
   ]);
 
   const defaultTableHeaders = [
-    { key: "enquirySub_product_name", label: "Product Name", required: true },
-    { key: "enquirySub_shu", label: "SHU (in K)", required: true },
-    { key: "enquirySub_asta", label: "ASTA", required: true },
-    { key: "enquirySub_qlty_type", label: "Quality Type", required: true },
-    { key: "enquirySub_course_type", label: "Course Type", required: true },
-    { key: "enquirySub_qnty", label: "Quantity (in MT)", required: true },
+    { key: "enquirySub_product_name", label: "Product Name", required:true  },
+    { key: "enquirySub_shu", label: "SHU (in K)",  },
+    { key: "enquirySub_asta", label: "ASTA",  },
+    { key: "enquirySub_qlty_type", label: "Quality Type",},
+    { key: "enquirySub_course_type", label: "Course Type" },
+    { key: "enquirySub_qnty", label: "Quantity (in MT)" },
     { key: "enquirySub_quoted_price", label: "Quoted Price" },
   ];
 
@@ -206,7 +206,7 @@ const EnquiryCreate = () => {
       enquirySub_moist_value: "",
       enquirySub_qnty: "",
       enquirySub_quoted_price: "",
-      enquirySub_final_price: "",
+      enquirySub_final_price: 0,
       enquirySub_p2b_blend: "",
     },
   ]);
@@ -334,10 +334,7 @@ const EnquiryCreate = () => {
 
   const handleRowDataChange = (rowIndex, field, value) => {
     const numericFields = [
-      "enquirySub_qnty",
-
-      "enquirySub_shu",
-      "enquirySub_asta",
+      "enquirySub_final_price"
     ];
     let processedValue = value;
 
@@ -679,27 +676,24 @@ const EnquiryCreate = () => {
                                   }
                                   type={
                                     [
-                                      "enquirySub_qnty",
-                                      "enquirySub_shu",
-                                      "enquirySub_asta",
+                                      "enquirySub_final_price",
+                                 
                                     ].includes(header.key)
                                       ? "number"
                                       : "text"
                                   }
                                   step={
                                     [
-                                      "enquirySub_qnty",
-                                      "enquirySub_shu",
-                                      "enquirySub_asta",
+                                      "enquirySub_final_price",
+                                
                                     ].includes(header.key)
                                       ? "any"
                                       : undefined
                                   }
                                   min={
                                     [
-                                      "enquirySub_qnty",
-                                      "enquirySub_shu",
-                                      "enquirySub_asta",
+                                 
+                                      "enquirySub_final_price",
                                     ].includes(header.key)
                                       ? "0"
                                       : undefined

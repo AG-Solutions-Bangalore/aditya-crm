@@ -12,6 +12,8 @@ import EnquiryEdit from "./app/enquiry/EnquiryEdit";
 import EnquiryReplyEdit from "./app/enquiry/EnquiryReplyEdit";
 import EnquiryView from "./app/enquiry/EnquiryView";
 import EnquiryCreateOne from "./app/test/EnquiryCreateOne";
+import ReportForm from "./app/report/ReportForm";
+import Profile from "./app/profile/Profile";
 
 
 const queryClient = new QueryClient()
@@ -26,6 +28,9 @@ function App() {
         <Route path="/" element={<Login />} />
         {/* Dashboard  */}
         <Route path="/home" element={<Home />} />
+        {/* profile  */}
+        <Route path="/profile" element={<Profile />} />
+        <Route path="/change-password" element={<Profile />} />
         {/* Registration  */}
         <Route path="/customers" element={<CustomerList />} />
         {/* customer  */}
@@ -37,6 +42,9 @@ function App() {
         <Route path="/reply-edit-enquiry/:id" element={<EnquiryReplyEdit />} />
         <Route path="/view-enquiry/:id" element={<EnquiryView />} />
         <Route path="/test" element={<EnquiryCreateOne />} />
+
+        {/* report  */}
+        <Route path="/report" element={<ReportForm />} />
        
         
       </Routes>

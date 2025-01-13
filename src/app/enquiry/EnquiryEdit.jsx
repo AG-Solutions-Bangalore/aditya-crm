@@ -47,6 +47,7 @@ import {
 import { useNavigate, useParams } from "react-router-dom";
 import { ProgressBar } from "@/components/spinner/ProgressBar";
 import { decryptId } from "@/utils/encyrption/Encyrption";
+import { useStatus } from "@/hooks/useStatus";
 
 // Header Component
 
@@ -123,11 +124,11 @@ const EnquiryEdit = () => {
 
   const defaultTableHeaders = [
     { key: "enquirySub_product_name", label: "Product Name", required: true },
-    { key: "enquirySub_shu", label: "SHU (in K)", required: true },
-    { key: "enquirySub_asta", label: "ASTA", required: true },
-    { key: "enquirySub_qlty_type", label: "Quality Type", required: true },
-    { key: "enquirySub_course_type", label: "Course Type", required: true },
-    { key: "enquirySub_qnty", label: "Quantity (in MT)", required: true },
+    { key: "enquirySub_shu", label: "SHU (in K)",  },
+    { key: "enquirySub_asta", label: "ASTA", },
+    { key: "enquirySub_qlty_type", label: "Quality Type",  },
+    { key: "enquirySub_course_type", label: "Course Type",  },
+    { key: "enquirySub_qnty", label: "Quantity (in MT)"},
     { key: "enquirySub_quoted_price", label: "Quoted Price" },
   ];
 
@@ -157,6 +158,11 @@ const EnquiryEdit = () => {
   });
 
   const packingTypes = ["5 Kg", "10 Kg", "15 Kg", "20 Kg", "25 Kg"];
+
+  // const { data: statusData, isLoading: isStatusLoading, error: statusError } = useStatus();
+
+  // Replace the static statusOptions with the fetched data
+  // const statusOptions = statusData?.status?.map((status) => status.status_name) || [];
   const statusOptions = [
     "Enquiry Received",
     "New Enquiry",

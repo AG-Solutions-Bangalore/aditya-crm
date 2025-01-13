@@ -125,6 +125,11 @@ export function AppSidebar({ ...props }) {
         url: "/enquiries",
         icon: Map,
       },
+      {
+        name: "Report",
+        url: "/report",
+        icon: Map,
+      },
     ],
   };
   
