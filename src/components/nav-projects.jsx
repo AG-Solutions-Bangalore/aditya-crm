@@ -49,7 +49,7 @@ export function NavProjects({
            
               <Link to={item.url}>
                 <item.icon />
-                <span className="transition-colors duration-200 hover:text-blue-500">{item.name}</span>
+                <span className="transition-colors duration-200 hover:text-yellow-600">{item.name}</span>
               </Link>
           
             </SidebarMenuButton>

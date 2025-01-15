@@ -1,6 +1,6 @@
 import React, { useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
   Building2,
@@ -167,8 +167,8 @@ const PrintableEnquiry = React.forwardRef(({ enquiryDetails }, ref) => {
           },
           { label: "Marking", value: enquiryDetails?.enquiry?.marking },
           {
-            label: "Shipment Date",
-            value: enquiryDetails?.enquiry?.shipment_date,
+            label: "Completion Date",
+            value: enquiryDetails?.enquiry?.completion_date,
           },
           {
             label: "Sample Required",
@@ -213,9 +213,10 @@ const PrintableEnquiry = React.forwardRef(({ enquiryDetails }, ref) => {
       <InfoSection
         title="Sample Information"
         items={[
+        
           {
-            label: "Completion Date",
-            value: enquiryDetails?.enquiry?.completion_date,
+            label: "Shipment Date",
+            value: enquiryDetails?.enquiry?.shipment_date,
           },
           {
             label: "UCT Sample Bangalore",
@@ -588,12 +589,7 @@ const EnquiryView = () => {
                   label="Marking"
                   value={enquiryDetails?.enquiry?.marking}
                 />
-                <InfoItem
-                  icon={Calendar}
-                  label="Shipment Date"
-                  value={enquiryDetails?.enquiry?.shipment_date}
-                />
-                <InfoItem
+                  <InfoItem
                   icon={TestTubes}
                   label="Sample Required"
                   value={enquiryDetails?.enquiry?.sample_required}
@@ -603,6 +599,13 @@ const EnquiryView = () => {
                   label="Production Date"
                   value={enquiryDetails?.enquiry?.production_date}
                 />
+              
+                 <InfoItem
+                  icon={Clock}
+                  label="Completion Date"
+                  value={enquiryDetails?.enquiry?.completion_date}
+                />
+              
                 <InfoItem
                   icon={TestTubes}
                   label="Treatment Required"
@@ -645,10 +648,10 @@ const EnquiryView = () => {
               </div>
 
               <InfoSection title="Sample Information">
-                <InfoItem
-                  icon={Clock}
-                  label="Completion Date"
-                  value={enquiryDetails?.enquiry?.completion_date}
+              <InfoItem
+                  icon={Calendar}
+                  label="Shipment Date"
+                  value={enquiryDetails?.enquiry?.shipment_date}
                 />
                 <InfoItem
                   icon={Calendar}

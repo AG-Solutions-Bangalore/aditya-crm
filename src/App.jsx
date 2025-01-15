@@ -14,40 +14,54 @@ import EnquiryView from "./app/enquiry/EnquiryView";
 import EnquiryCreateOne from "./app/test/EnquiryCreateOne";
 import ReportForm from "./app/report/ReportForm";
 import Profile from "./app/profile/Profile";
+import SampleEnquiryCreate from "./app/enquiry/sampleEnquiry/SampleEnquiryCreate";
+import EnquiryTimeline from "./app/enquiry/timeline/EnquiryTimeline";
+import ClaudeTimeline from "./app/enquiry/timeline/ClaudeTimeline";
 
-
-const queryClient = new QueryClient()
+const queryClient = new QueryClient();
 
 function App() {
   return (
     <>
-       <QueryClientProvider client={queryClient}>
-      <Toaster />
-      <Routes>
-        {/* Login Page        */}
-        <Route path="/" element={<Login />} />
-        {/* Dashboard  */}
-        <Route path="/home" element={<Home />} />
-        {/* profile  */}
-        <Route path="/profile" element={<Profile />} />
-        <Route path="/change-password" element={<Profile />} />
-        {/* Registration  */}
-        <Route path="/customers" element={<CustomerList />} />
-        {/* customer  */}
-        <Route path="/products" element={<ProductList />} />
-        {/* enquiry */}
-        <Route path="/enquiries" element={<EnquiryList />} />
-        <Route path="/create-enquiries" element={<EnquiryCreate />} />
-        <Route path="/edit-enquiry/:id" element={<EnquiryEdit />} />
-        <Route path="/reply-edit-enquiry/:id" element={<EnquiryReplyEdit />} />
-        <Route path="/view-enquiry/:id" element={<EnquiryView />} />
-        <Route path="/test" element={<EnquiryCreateOne />} />
-
-        {/* report  */}
-        <Route path="/report" element={<ReportForm />} />
-       
-        
-      </Routes>
+      <QueryClientProvider client={queryClient}>
+        <Toaster />
+        <Routes>
+          {/* Login Page        */}
+          <Route path="/" element={<Login />} />
+          {/* Dashboard  */}
+          <Route path="/home" element={<Home />} />
+          {/* profile  */}
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/change-password" element={<Profile />} />
+          {/* Registration  */}
+          <Route path="/customers" element={<CustomerList />} />
+          {/* customer  */}
+          <Route path="/products" element={<ProductList />} />
+          {/* enquiry */}
+          <Route path="/enquiries" element={<EnquiryList />} />
+          <Route path="/create-enquiries" element={<EnquiryCreate />} />
+          <Route path="/edit-enquiry/:id" element={<EnquiryEdit />} />
+          <Route
+            path="/reply-edit-enquiry/:id"
+            element={<EnquiryReplyEdit />}
+          />
+          <Route path="/view-enquiry/:id" element={<EnquiryView />} />
+          <Route path="/test" element={<EnquiryCreateOne />} />
+          <Route
+            path="/create-sample-enquiries"
+            element={<SampleEnquiryCreate />}
+          />
+          <Route
+            path="/timeline-enquiry/:id"
+            element={<EnquiryTimeline  />}
+          />
+          <Route
+            path="/timeline-enquiry-test/:id"
+            element={<ClaudeTimeline  />}
+          />
+          {/* report  */}
+          <Route path="/report" element={<ReportForm />} />
+        </Routes>
       </QueryClientProvider>
     </>
   );
