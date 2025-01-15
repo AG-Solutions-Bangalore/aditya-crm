@@ -1,3 +1,19 @@
+{
+  accessorKey: "enquiry_ref",
+  header: "Ref No",
+  cell: ({ row }) => {
+    const status = row.original.enquiry_status; // Access the status field
+    return (
+      <div className="flex items-center">
+        {status === "Sample" && <ClipboardMinus className="mr-2 h-4 w-4" />}
+        {row.getValue("enquiry_ref")}
+      </div>
+    );
+  },
+},
+
+
+
 import React, { useEffect, useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";

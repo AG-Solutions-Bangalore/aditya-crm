@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -159,21 +159,21 @@ const EnquiryEdit = () => {
 
   const packingTypes = ["5 Kg", "10 Kg", "15 Kg", "20 Kg", "25 Kg"];
 
-  // const { data: statusData, isLoading: isStatusLoading, error: statusError } = useStatus();
+  const { data: statusData, isLoading: isStatusLoading, error: statusError } = useStatus();
 
   // Replace the static statusOptions with the fetched data
-  // const statusOptions = statusData?.status?.map((status) => status.status_name) || [];
-  const statusOptions = [
-    "Enquiry Received",
-    "New Enquiry",
-    "Order Cancel",
-    "Order Closed",
-    "Order Confirmed",
-    "Order Delivered",
-    "Order Progress",
-    "Order Shipped",
-    "Quotation",
-  ];
+  const statusOptions = statusData?.status?.map((status) => status.status_name) || [];
+  // const statusOptions = [
+  //   "Enquiry Received",
+  //   "New Enquiry",
+  //   "Order Cancel",
+  //   "Order Closed",
+  //   "Order Confirmed",
+  //   "Order Delivered",
+  //   "Order Progress",
+  //   "Order Shipped",
+  //   "Quotation",
+  // ];
 
   // Fetch Enquiry Data
   const {

@@ -15,6 +15,7 @@ import {
   ChevronDown,
   Edit,
   Eye,
+  History,
   Loader2,
   Search,
   SquarePlus,
@@ -63,7 +64,7 @@ import { encryptId } from "@/utils/encyrption/Encyrption";
 const EnquiryList = () => {
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [deleteEnquiryId, setDeleteEnquiryId] = useState(null);
-  const userType = parseInt(localStorage.getItem("userType"), 10)
+  const userType = parseInt(localStorage.getItem("userType"), 10);
   const { toast } = useToast();
   const {
     data: enquiry,
@@ -157,13 +158,12 @@ const EnquiryList = () => {
       },
     },
 
-   
     {
       accessorKey: "enquiry_status",
       header: "Status",
       cell: ({ row }) => {
         const status = row.getValue("enquiry_status");
-    
+
         const statusColors = {
           "Enquiry Received": "bg-blue-100 text-blue-800",
           "New Enquiry": "bg-green-100 text-green-800",
@@ -173,9 +173,10 @@ const EnquiryList = () => {
           "Order Delivered": "bg-purple-100 text-purple-800",
           "Order Progress": "bg-yellow-100 text-yellow-800",
           "Order Shipped": "bg-orange-100 text-orange-800",
-          "Quotation": "bg-pink-100 text-pink-800",
+          Quotation: "bg-pink-100 text-pink-800",
+          Sample: "bg-pink-100 text-pink-800",
         };
-    
+
         return (
           <span
             className={`px-2 py-1 rounded text-xs ${
@@ -187,84 +188,108 @@ const EnquiryList = () => {
         );
       },
     },
-    
+
     {
       id: "actions",
       header: "Action",
       cell: ({ row }) => {
         const enquiryId = row.original.id;
+        const status = row.original.enquiry_status;
+        // const status = row.getValue("enquiry_status")
 
         return (
           <div className="flex flex-row">
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => navigate(`/view-enquiry/${encryptId(enquiryId)}`)}
-                >
-                  <Eye className="h-4 w-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>View Enquiry</TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-          {(userType === 2 || userType === 3) && (
-          
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => navigate(`/edit-enquiry/${encryptId(enquiryId)}`)}
-                 
-                >
-                  <Edit className="h-4 w-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Edit Enquiry</TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-             )}
-     {(userType === 1 || userType === 3) && (
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => navigate(`/reply-edit-enquiry/${encryptId(enquiryId)}`)}
-                >
-                  <UserPen className="h-4 w-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Reply Follow-Up</TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-          
-    )}
-       {( userType === 3) && (
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => {
-                    setDeleteEnquiryId(enquiryId);
-                    setDeleteConfirmOpen(true);
-                  }}
-                >
-                  <Trash className="h-4 w-4 text-red-500" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Delete Enquiry</TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-       )}
-        </div>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() =>
+                      navigate(`/view-enquiry/${encryptId(enquiryId)}`)
+                    }
+                  >
+                    <Eye className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>View Enquiry</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() =>
+                      navigate(`/timeline-enquiry/${encryptId(enquiryId)}`)
+                    }
+                  >
+                    <History  className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>TimeLine</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+           
+       
+            {status !== "Sample" && (userType === 2 || userType === 3) && (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() =>
+                        navigate(`/edit-enquiry/${encryptId(enquiryId)}`)
+                      }
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Edit Enquiry</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
+            {status !== "Sample" && (userType === 1 || userType === 3) && (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() =>
+                        navigate(`/reply-edit-enquiry/${encryptId(enquiryId)}`)
+                      }
+                    >
+                      <UserPen className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Reply Follow-Up</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
+        
+            {userType === 3 && (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => {
+                        setDeleteEnquiryId(enquiryId);
+                        setDeleteConfirmOpen(true);
+                      }}
+                    >
+                      <Trash className="h-4 w-4 text-red-500" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Delete Enquiry</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
+          </div>
         );
       },
     },
@@ -380,14 +405,23 @@ const EnquiryList = () => {
             </DropdownMenuContent>
           </DropdownMenu>
           {(userType === 2 || userType === 3) && (
-          <Button
-            variant="default"
-            className="ml-2 bg-yellow-500 text-black hover:bg-yellow-100"
-            onClick={() => navigate("/create-enquiries")}
-          >
-            <SquarePlus className="h-4 w-4" /> Enquiry
-          </Button>
-             )}
+            <Button
+              variant="default"
+              className="ml-2 bg-yellow-500 text-black hover:bg-yellow-100"
+              onClick={() => navigate("/create-enquiries")}
+            >
+              <SquarePlus className="h-4 w-4" /> Enquiry
+            </Button>
+          )}
+          {(userType === 2 || userType === 3) && (
+            <Button
+              variant="default"
+              className="ml-2 bg-yellow-500 text-black hover:bg-yellow-100"
+              onClick={() => navigate("/create-sample-enquiries")}
+            >
+              <SquarePlus className="h-4 w-4" /> Sample
+            </Button>
+          )}
         </div>
         {/* table  */}
         <div className="rounded-md border">

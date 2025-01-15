@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef, useCallback } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -39,6 +39,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { ProgressBar } from "@/components/spinner/ProgressBar";
 import { gsap } from "gsap";
 import { decryptId } from "@/utils/encyrption/Encyrption";
+import { useStatus } from "@/hooks/useStatus";
 // Header Component (same as EnquiryEdit)
 
 const EnquiryHeader = ({ enquiryDetails }) => {
@@ -201,23 +202,26 @@ const EnquiryReplyEdit = () => {
   const { id } = useParams();
   const { toast } = useToast();
   const navigate = useNavigate();
-   const originalId = decryptId(id);
-      if (!originalId) {
-        return (
-          <Page>
-            <Card className="w-full max-w-md mx-auto mt-10">
-              <CardHeader>
-                <CardTitle className="text-destructive">
-                  Error Decrypting Data
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                
-              </CardContent>
-            </Card>
-          </Page>
-        )
-      }
+  const {
+    data: statusData,
+    isLoading: isStatusLoading,
+   
+  } = useStatus();
+  const originalId = decryptId(id);
+  if (!originalId) {
+    return (
+      <Page>
+        <Card className="w-full max-w-md mx-auto mt-10">
+          <CardHeader>
+            <CardTitle className="text-destructive">
+              Error Decrypting Data
+            </CardTitle>
+          </CardHeader>
+          <CardContent></CardContent>
+        </Card>
+      </Page>
+    );
+  }
 
   // Form state for reply-specific fields
   const [replyData, setReplyData] = useState({
@@ -879,21 +883,20 @@ const EnquiryReplyEdit = () => {
                     <SelectValue placeholder="Select status" />
                   </SelectTrigger>
                   <SelectContent>
-                    {[
-                      "Enquiry Received",
-                      "New Enquiry",
-                      "Order Cancel",
-                      "Order Closed",
-                      "Order Confirmed",
-                      "Order Delivered",
-                      "Order Progress",
-                      "Order Shipped",
-                      "Quotation",
-                    ].map((status) => (
-                      <SelectItem key={status} value={status}>
-                        {status}
+                    {isStatusLoading ? (
+                      <SelectItem value="loading" disabled>
+                        Loading...
                       </SelectItem>
-                    ))}
+                    ) : (
+                      statusData?.status?.map((status) => (
+                        <SelectItem
+                          key={status.status_name}
+                          value={status.status_name}
+                        >
+                          {status.status_name}
+                        </SelectItem>
+                      ))
+                    )}
                   </SelectContent>
                 </Select>
               </div>
