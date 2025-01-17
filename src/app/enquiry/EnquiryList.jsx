@@ -233,7 +233,7 @@ const EnquiryList = () => {
             </TooltipProvider>
            
        
-            {status !== "Sample" && (userType === 2 || userType === 3) && (
+            { (userType === 2 || userType === 3) && (
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -251,7 +251,7 @@ const EnquiryList = () => {
                 </Tooltip>
               </TooltipProvider>
             )}
-            {status !== "Sample" && (userType === 1 || userType === 3) && (
+            { (userType === 1 || userType === 3) && (
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>

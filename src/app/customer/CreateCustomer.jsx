@@ -27,6 +27,7 @@ const CreateCustomer = () => {
     customer_short: "",
     customer_name: "",
     customer_country: "",
+    customer_port:"",
   });
 
   const handleInputChange = (e) => {
@@ -41,7 +42,8 @@ const CreateCustomer = () => {
     if (
       !formData.customer_short ||
       !formData.customer_name ||
-      !formData.customer_country
+      !formData.customer_country ||
+      !formData.customer_port 
     ) {
       toast({
         title: "Error",
@@ -102,7 +104,11 @@ const CreateCustomer = () => {
           <p className="text-xs text-yellow-700 ml-2 mt-1 w-32 hover:text-red-800 cursor-pointer">
             Create Customer
           </p>
-        ) : null}
+        ) :pathname === "/create-sample-enquiries" ? (
+          <p className="text-xs text-yellow-700 ml-2 mt-1 w-32 hover:text-red-800 cursor-pointer">
+            Create Customer
+          </p>
+        ): null}
       </DialogTrigger>
 
       <DialogContent className="sm:max-w-md">
@@ -141,6 +147,16 @@ const CreateCustomer = () => {
               value={formData.customer_country}
               onChange={handleInputChange}
               placeholder="Enter Country "
+            />
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="customer_port">Port</Label>
+            <Input
+              id="customer_port"
+              name="customer_port"
+              value={formData.customer_port}
+              onChange={handleInputChange}
+              placeholder="Enter Port "
             />
           </div>
         </div>

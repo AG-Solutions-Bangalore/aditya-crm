@@ -41,6 +41,7 @@ const EditCustomer = ({ customerId }) => {
     customer_short: "",
     customer_name: "",
     customer_country: "",
+    customer_port:"",
     customer_status: "Active",
   });
 
@@ -59,6 +60,7 @@ const EditCustomer = ({ customerId }) => {
         customer_short: customerData.customer_short,
         customer_name: customerData.customer_name,
         customer_country: customerData.customer_country,
+        customer_port: customerData.customer_port,
         customer_status: customerData.customer_status,
       });
     } catch (error) {
@@ -98,7 +100,8 @@ const EditCustomer = ({ customerId }) => {
       !formData.customer_short ||
       !formData.customer_name ||
       !formData.customer_country ||
-      !formData.customer_status
+      !formData.customer_status ||
+      !formData.customer_port
     ) {
       toast({
         title: "Error",
@@ -206,6 +209,16 @@ const EditCustomer = ({ customerId }) => {
                 value={formData.customer_country}
                 onChange={handleInputChange}
                 placeholder="Enter Country"
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="customer_port">Port</Label>
+              <Input
+                id="customer_port"
+                name="customer_port"
+                value={formData.customer_port}
+                onChange={handleInputChange}
+                placeholder="Enter Port"
               />
             </div>
             <div className="grid gap-2">

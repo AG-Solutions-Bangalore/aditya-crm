@@ -4,7 +4,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import Select, { components } from "react-select";
+import Select,{components} from "react-select";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -47,7 +47,7 @@ const Option = (props) => {
         <input
           type="checkbox"
           checked={props.isSelected}
-          onChange={() => null}
+          onChange={() => null} 
         />{" "}
         <label>{props.label}</label>
       </components.Option>
@@ -60,7 +60,8 @@ const EnquiryTimeline = () => {
   const originalId = decryptId(id);
   const userType = localStorage.getItem("userType");
   const queryClient = useQueryClient();
-  const timelineContainerRef = useRef(null);
+  const timelineContainerRef = useRef(null)
+  
 
   const {
     data: enquiryDetails,
@@ -298,7 +299,7 @@ const EnquiryTimeline = () => {
         behavior: "smooth", // Smooth scrolling
       });
     }
-  }, [timelineData]);
+  }, [timelineData])
 
   //   const handleAcknowledge = (id) => {
   //     setTimelineData((prev) => ({
@@ -459,7 +460,7 @@ const EnquiryTimeline = () => {
                       <textarea
                         placeholder="Add a comment..."
                         value={newComment}
-                        className="w-full p-1 border border-gray-300 rounded-sm "
+                        className="w-full p-1 border border-gray-300 rounded-sm shadow-lg"
                         onChange={(e) => setNewComment(e.target.value)}
                       />
                       <DropdownMenu>
@@ -543,7 +544,7 @@ const EnquiryTimeline = () => {
                       <textarea
                         placeholder="Description..."
                         value={sampleSentDescription}
-                        className="w-full p-1 border border-gray-300 rounded-sm "
+                        className="w-full p-1 border border-gray-300 rounded-sm shadow-lg"
                         onChange={(e) =>
                           setSampleSentDescription(e.target.value)
                         }
@@ -560,10 +561,7 @@ const EnquiryTimeline = () => {
               </div>
             </div>
           </CardHeader>
-          <CardContent
-            ref={timelineContainerRef}
-            className="flex-1 overflow-y-auto"
-          >
+          <CardContent   ref={timelineContainerRef}  className="flex-1 overflow-y-auto">
             <div className="space-y-4">
               {isTimelineLoading ? (
                 <div className="flex justify-center items-center h-full">
@@ -614,50 +612,42 @@ const EnquiryTimeline = () => {
                             ) : item.type === "sample_sent" ? (
                               <>
                                 <div>{`${item.created_by} sent ${item.sent_via} on ${item.date}`}</div>
-                                {/* <div className="mt-2">
-                                    {item.sent_product_code && (
-                                      <table className="w-full border-collapse border border-gray-200">
-                                        <thead>
-                                          <tr className="bg-gray-100 ">
-                                            <th className="p-2 border border-gray-200 text-left">
-                                              Product Code
-                                            </th>
-                                            <th className="p-2 border border-gray-200 text-left">
-                                              Quantity
-                                            </th>
-                                          </tr>
-                                        </thead>
-                                        <tbody>
-                                          {item.sent_product_code
-                                            .split(",")
-                                            .map((code, index) => (
-                                              <tr
-                                                key={index}
-                                                className="hover:bg-gray-50"
-                                              >
-                                                <td className="p-2 border border-gray-200">
-                                                  {code.trim()}
-                                                </td>
-                                                <td className="p-2 border border-gray-200">
-                                                  {item.sent_product_quantity
-                                                    .split(",")
-                                                    [index]?.trim()}
-                                                </td>
-                                              </tr>
-                                            ))}
-                                        </tbody>
-                                      </table>
-                                    )}
-                                  </div> */}
-                                {item.sent_product_code && (
-                                  <div className="mt-2 text-xs">{`Products: ${item.sent_product_code}`}</div>
-                                )}
-                                {item.sent_product_quantity && (
-                                  <div className="mt-2 text-xs">{`Quantity: ${item.sent_product_quantity}`}</div>
-                                )}
-                                {item.description && (
-                                  <div className="mt-2 text-xs">{`Description: ${item.description}`}</div>
-                                )}
+                                <div className="mt-2">
+                                  {item.sent_product_code && (
+                                    <table className="w-full border-collapse border border-gray-200">
+                                      <thead>
+                                        <tr className="bg-gray-100">
+                                          <th className="p-2 border border-gray-200 text-left">
+                                            Product Code
+                                          </th>
+                                          <th className="p-2 border border-gray-200 text-left">
+                                            Quantity
+                                          </th>
+                                        </tr>
+                                      </thead>
+                                      <tbody>
+                                        {item.sent_product_code
+                                          .split(",")
+                                          .map((code, index) => (
+                                            <tr
+                                              key={index}
+                                              className="hover:bg-gray-50"
+                                            >
+                                              <td className="p-2 border border-gray-200">
+                                                {code.trim()}
+                                              </td>
+                                              <td className="p-2 border border-gray-200">
+                                                {item.sent_product_quantity
+                                                  .split(",")
+                                                  [index]?.trim()}
+                                              </td>
+                                            </tr>
+                                          ))}
+                                      </tbody>
+                                    </table>
+                                  )}
+                                </div>
+                                <div className="mt-2">{`Description: ${item.description}`}</div>
                               </>
                             ) : item.type === "status_changed" ? (
                               `Enquiry status has been changed by ${item.created_by}`
@@ -939,3 +929,5 @@ const EnquiryTimeline = () => {
 };
 
 export default EnquiryTimeline;
+
+// for sample coment product and quantity table wise

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -53,7 +53,7 @@ import { useStatus } from "@/hooks/useStatus";
 
 const EnquiryHeader = ({ enquiryDetails }) => {
   return (
-    <div className="flex sticky top-0 z-10 border border-gray-200 rounded-lg justify-between items-start gap-8 mb-2 bg-white p-4 shadow-sm">
+    <div className="flex sticky top-0 z-10 border border-blue-200 rounded-lg justify-between items-start gap-8 mb-2 bg-blue-100 p-4 shadow-sm">
       <div className="flex-1">
         <div className="flex items-center gap-2">
           <h1 className="text-3xl font-bold text-gray-800">Edit Enquiry</h1>
@@ -63,7 +63,7 @@ const EnquiryHeader = ({ enquiryDetails }) => {
           </span>
         </div>
         <div className="flex items-center gap-4 ">
-          <p className="text-gray-600 mt-2">Update your enquiry details</p>
+          <p className="text-gray-800 mt-2">Update your enquiry details</p>
         </div>
       </div>
 
@@ -108,7 +108,7 @@ const EnquiryEdit = () => {
   }
   const { toast } = useToast();
   const navigate = useNavigate();
-  const [progress, setProgress] = useState(0);
+  const [initialStatus, setInitialStatus] = useState("");
 
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [deleteItemId, setDeleteItemId] = useState(null);
@@ -120,16 +120,18 @@ const EnquiryEdit = () => {
     "enquirySub_course_type",
     "enquirySub_qnty",
     "enquirySub_quoted_price",
+    "enquirySub_remarks",
   ]);
 
   const defaultTableHeaders = [
     { key: "enquirySub_product_name", label: "Product Name", required: true },
-    { key: "enquirySub_shu", label: "SHU (in K)",  },
-    { key: "enquirySub_asta", label: "ASTA", },
-    { key: "enquirySub_qlty_type", label: "Quality Type",  },
-    { key: "enquirySub_course_type", label: "Course Type",  },
-    { key: "enquirySub_qnty", label: "Quantity (in MT)"},
+    { key: "enquirySub_shu", label: "SHU (in K)" },
+    { key: "enquirySub_asta", label: "ASTA" },
+    { key: "enquirySub_qlty_type", label: "Quality Type" },
+    { key: "enquirySub_course_type", label: "Coarse Type" },
+    { key: "enquirySub_qnty", label: "Quantity (in MT)" },
     { key: "enquirySub_quoted_price", label: "Quoted Price" },
+    { key: "enquirySub_remarks", label: "Remarks" },
   ];
 
   const optionalHeaders = [
@@ -159,21 +161,14 @@ const EnquiryEdit = () => {
 
   const packingTypes = ["5 Kg", "10 Kg", "15 Kg", "20 Kg", "25 Kg"];
 
-  const { data: statusData, isLoading: isStatusLoading, error: statusError } = useStatus();
+  const {
+    data: statusData,
+    isLoading: isStatusLoading,
+    error: statusError,
+  } = useStatus();
 
-  // Replace the static statusOptions with the fetched data
-  const statusOptions = statusData?.status?.map((status) => status.status_name) || [];
-  // const statusOptions = [
-  //   "Enquiry Received",
-  //   "New Enquiry",
-  //   "Order Cancel",
-  //   "Order Closed",
-  //   "Order Confirmed",
-  //   "Order Delivered",
-  //   "Order Progress",
-  //   "Order Shipped",
-  //   "Quotation",
-  // ];
+  const statusOptions =
+    statusData?.status?.map((status) => status?.status_name) || [];
 
   // Fetch Enquiry Data
   const {
@@ -197,8 +192,13 @@ const EnquiryEdit = () => {
       return response.json();
     },
   });
+  useEffect(() => {
+    if (enquiryDetails?.enquiry?.enquiry_status) {
+      setInitialStatus(enquiryDetails.enquiry.enquiry_status);
+    }
+  }, [enquiryDetails]);
 
-  // Fetch Customers
+  // fetch customer
   const { data: customerData } = useQuery({
     queryKey: ["customers"],
     queryFn: async () => {
@@ -234,6 +234,69 @@ const EnquiryEdit = () => {
     },
   });
 
+  useEffect(() => {
+    if (enquiryDetails) {
+      setFormData({
+        customer_id: enquiryDetails.enquiry.customer_id.toString(),
+        enquiry_date: enquiryDetails.enquiry.enquiry_date,
+        packing_type: enquiryDetails.enquiry.packing_type,
+        marking: enquiryDetails.enquiry.marking,
+        shipment_date: enquiryDetails.enquiry.shipment_date,
+        special_instruction: enquiryDetails.enquiry.special_instruction,
+        customer_feedback: enquiryDetails.enquiry.customer_feedback,
+        sample_required: enquiryDetails.enquiry.sample_required,
+        treatment_required: enquiryDetails.enquiry.treatment_required,
+        etd: enquiryDetails.enquiry.etd,
+        gama_rediations: enquiryDetails.enquiry.gama_rediations,
+        steam_sterlizaton: enquiryDetails.enquiry.steam_sterlizaton,
+        enquiry_status: enquiryDetails?.enquiry?.enquiry_status,
+      });
+      setEnquiryData(enquiryDetails.enquirySub);
+
+      const columnsWithValues = optionalHeaders
+        .filter((header) =>
+          enquiryDetails.enquirySub.some(
+            (row) => row[header.key] && row[header.key].toString().trim() !== ""
+          )
+        )
+        .map((header) => header.key);
+      setVisibleColumns((prev) => [
+        ...new Set([...prev, ...columnsWithValues]),
+      ]);
+    }
+  }, [enquiryDetails]);
+
+  // timeline
+  const createTimelineEvent = async (data) => {
+    const token = localStorage.getItem("token");
+    const response = await fetch(
+      "https://adityaspice.com/app/public/api/panel-create-enquiry-timeline",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(data),
+      }
+    );
+    if (!response.ok) throw new Error("Failed to create timeline event");
+    return response.json();
+  };
+  const { mutate: addTimelineEvent } = useMutation({
+    mutationFn: createTimelineEvent,
+    onSuccess: () => {
+      console.log("timeline created");
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
   // Delete Product Row Mutation
   const deleteProductMutation = useMutation({
     mutationFn: async (productId) => {
@@ -264,7 +327,7 @@ const EnquiryEdit = () => {
       });
     },
   });
-
+  console.log("eeeeeee", initialStatus);
   // Update Enquiry Mutation
   const updateEnquiryMutation = useMutation({
     mutationFn: async (data) => {
@@ -283,11 +346,37 @@ const EnquiryEdit = () => {
       if (!response.ok) throw new Error("Failed to update enquiry");
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       toast({
         title: "Success",
         description: "Enquiry updated successfully",
       });
+      const token = localStorage.getItem("token");
+      const updatedResponse = await fetch(
+        `https://adityaspice.com/app/public/api/panel-fetch-enquiry-by-id/${originalId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!updatedResponse.ok)
+        throw new Error("Failed to fetch updated enquiry");
+
+      const updatedData = await updatedResponse.json();
+
+      if (
+        initialStatus &&
+        updatedData?.enquiry?.enquiry_status !== initialStatus
+      ) {
+        addTimelineEvent({
+          enquiry_ref: updatedData?.enquiry.enquiry_ref,
+          type: "status_changed",
+          status_label: updatedData?.enquiry.enquiry_status,
+        });
+      }
+
       navigate("/enquiries");
     },
     onError: (error) => {
@@ -298,38 +387,6 @@ const EnquiryEdit = () => {
       });
     },
   });
-
-  useEffect(() => {
-    if (enquiryDetails) {
-      setFormData({
-        customer_id: enquiryDetails.enquiry.customer_id.toString(),
-        enquiry_date: enquiryDetails.enquiry.enquiry_date,
-        packing_type: enquiryDetails.enquiry.packing_type,
-        marking: enquiryDetails.enquiry.marking,
-        shipment_date: enquiryDetails.enquiry.shipment_date,
-        special_instruction: enquiryDetails.enquiry.special_instruction,
-        customer_feedback: enquiryDetails.enquiry.customer_feedback,
-        sample_required: enquiryDetails.enquiry.sample_required,
-        treatment_required: enquiryDetails.enquiry.treatment_required,
-        etd: enquiryDetails.enquiry.etd,
-        gama_rediations: enquiryDetails.enquiry.gama_rediations,
-        steam_sterlizaton: enquiryDetails.enquiry.steam_sterlizaton,
-        enquiry_status: enquiryDetails.enquiry.enquiry_status,
-      });
-      setEnquiryData(enquiryDetails.enquirySub);
-
-      const columnsWithValues = optionalHeaders
-        .filter((header) =>
-          enquiryDetails.enquirySub.some(
-            (row) => row[header.key] && row[header.key].toString().trim() !== ""
-          )
-        )
-        .map((header) => header.key);
-      setVisibleColumns((prev) => [
-        ...new Set([...prev, ...columnsWithValues]),
-      ]);
-    }
-  }, [enquiryDetails]);
 
   const handleInputChange = (e, field) => {
     let value;
@@ -371,6 +428,7 @@ const EnquiryEdit = () => {
         enquirySub_asta: "",
         enquirySub_qlty_type: "",
         enquirySub_stem_type: "",
+        enquirySub_remarks: "",
         enquirySub_course_type: "",
         enquirySub_moist_value: "",
         enquirySub_qnty: "",
@@ -386,16 +444,6 @@ const EnquiryEdit = () => {
     }
   };
 
-  //   const handleDeleteRow = async (productId) => {
-  //     try {
-  //       await deleteProductMutation.mutateAsync(productId);
-  //       setEnquiryData((prevData) =>
-  //         prevData.filter((row) => row.id !== productId)
-  //       );
-  //     } catch (error) {
-  //       console.error("Failed to delete product:", error);
-  //     }
-  //   };
   const handleDeleteRow = (productId) => {
     setDeleteItemId(productId);
     setDeleteConfirmOpen(true);
@@ -491,7 +539,7 @@ const EnquiryEdit = () => {
       <form onSubmit={handleSubmit} className="w-full p-4">
         <EnquiryHeader enquiryDetails={enquiryDetails} />
 
-        <Card className="mb-6">
+        <Card className="mb-6 bg-gray-100 border-gray-200">
           <CardContent className="p-6">
             {/* Basic Details Section */}
             <div className="mb-8">
@@ -506,10 +554,10 @@ const EnquiryEdit = () => {
                       handleInputChange({ target: { value } }, "customer_id")
                     }
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="bg-white border-blue-300">
                       <SelectValue placeholder="Select customer" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="bg-white border-blue-300">
                       {customerData?.customer?.map((customer) => (
                         <SelectItem
                           key={customer.id}
@@ -530,6 +578,7 @@ const EnquiryEdit = () => {
                     type="date"
                     value={formData.enquiry_date}
                     onChange={(e) => handleInputChange(e, "enquiry_date")}
+                    className="bg-white border-blue-300"
                   />
                 </div>
 
@@ -541,6 +590,7 @@ const EnquiryEdit = () => {
                     type="date"
                     value={formData.shipment_date}
                     onChange={(e) => handleInputChange(e, "shipment_date")}
+                    className="bg-white border-blue-300"
                   />
                 </div>
                 <div>
@@ -548,16 +598,16 @@ const EnquiryEdit = () => {
                     Status <span className="text-red-500">*</span>
                   </label>
                   <Select
-                    value={formData.enquiry_status}
+                    value={formData?.enquiry_status}
                     onValueChange={(value) =>
                       handleInputChange({ target: { value } }, "enquiry_status")
                     }
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="bg-white border-blue-300">
                       <SelectValue placeholder="Select status" />
                     </SelectTrigger>
-                    <SelectContent>
-                      {statusOptions.map((status) => (
+                    <SelectContent className="bg-white border-blue-300">
+                      {statusOptions?.map((status) => (
                         <SelectItem key={status} value={status}>
                           {status}
                         </SelectItem>
@@ -574,12 +624,12 @@ const EnquiryEdit = () => {
                 <h2 className="text-xl font-semibold">Products</h2>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="sm">
+                    <Button variant="outline" size="sm" className="bg-white border-blue-300">
                       <Settings2 className="h-4 w-4 mr-2" />
                       Customize Columns
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuContent align="end" className="w-56 bg-white border-blue-300">
                     {optionalHeaders.map((header) => (
                       <DropdownMenuItem
                         key={header.key}
@@ -598,7 +648,7 @@ const EnquiryEdit = () => {
               <div className="overflow-x-auto">
                 <table className="w-full border-collapse">
                   <thead>
-                    <tr className="bg-gray-50">
+                    <tr className="bg-blue-100">
                       {[...defaultTableHeaders, ...optionalHeaders]
                         .filter((header) => visibleColumns.includes(header.key))
                         .map((header) => (
@@ -617,7 +667,7 @@ const EnquiryEdit = () => {
                   </thead>
                   <tbody>
                     {enquiryData.map((row, rowIndex) => (
-                      <tr key={rowIndex} className="border-b hover:bg-gray-50">
+                      <tr key={rowIndex} className="border-b hover:bg-yellow-50">
                         {[...defaultTableHeaders, ...optionalHeaders]
                           .filter((header) =>
                             visibleColumns.includes(header.key)
@@ -635,10 +685,10 @@ const EnquiryEdit = () => {
                                     )
                                   }
                                 >
-                                  <SelectTrigger>
+                                  <SelectTrigger className="bg-white border-blue-300">
                                     <SelectValue placeholder="Select product" />
                                   </SelectTrigger>
-                                  <SelectContent>
+                                  <SelectContent className="bg-white border-blue-300">
                                     {productData?.product?.map((product) => (
                                       <SelectItem
                                         key={product.id}
@@ -659,7 +709,7 @@ const EnquiryEdit = () => {
                                       e.target.value
                                     )
                                   }
-                                  className="w-full border border-gray-300 bg-yellow-50"
+                                  className="w-full border border-blue-300 bg-white"
                                 />
                               )}
                             </td>
@@ -726,11 +776,12 @@ const EnquiryEdit = () => {
                       ))}
                     </SelectContent>
                   </Select> */}
-                   <Input
+                  <Input
                     type="text"
                     placeholder="Enter Package details"
                     value={formData.packing_type}
                     onChange={(e) => handleInputChange(e, "packing_type")}
+                    className="bg-white border-blue-300"
                   />
                 </div>
 
@@ -743,6 +794,7 @@ const EnquiryEdit = () => {
                     placeholder="Enter marking details"
                     value={formData.marking}
                     onChange={(e) => handleInputChange(e, "marking")}
+                    className="bg-white border-blue-300"
                   />
                 </div>
 
@@ -812,7 +864,7 @@ const EnquiryEdit = () => {
                       handleInputChange(e, "special_instruction")
                     }
                     placeholder="Pls enter special instruction..."
-                    className="border rounded-md p-2 w-full h-24 resize-none"
+                    className="border rounded-md bg-white border-blue-300 p-2 w-full h-24 resize-none"
                   />
                 </div>
                 <div>
@@ -823,7 +875,7 @@ const EnquiryEdit = () => {
                     value={formData.customer_feedback}
                     onChange={(e) => handleInputChange(e, "customer_feedback")}
                     placeholder="Pls enter customer feedback..."
-                    className="border rounded-md p-2 w-full h-24 resize-none"
+                    className="border border-blue-300 bg-white rounded-md p-2 w-full h-24 resize-none"
                   />
                 </div>
               </div>
