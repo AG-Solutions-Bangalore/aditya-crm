@@ -44,7 +44,7 @@ import { useStatus } from "@/hooks/useStatus";
 
 const EnquiryHeader = ({ enquiryDetails }) => {
   return (
-    <div className="flex sticky top-0 z-10 border border-gray-200 rounded-lg justify-between items-start gap-8 mb-2 bg-white p-4 shadow-sm">
+    <div className="flex sticky top-0 z-10 border border-blue-200 rounded-lg justify-between items-start gap-8 mb-2 bg-blue-100 p-4 shadow-sm">
       <div className="flex-1">
         <div className="flex items-center gap-2">
           <h1 className="text-3xl font-bold text-gray-800">Reply to Enquiry</h1>
@@ -53,7 +53,7 @@ const EnquiryHeader = ({ enquiryDetails }) => {
           </span>
         </div>
         <div className="flex items-center gap-4">
-          <p className="text-gray-600 mt-2">Update enquiry reply details</p>
+          <p className="text-gray-800 mt-2">Update enquiry reply details</p>
         </div>
       </div>
 
@@ -78,6 +78,9 @@ const ShippingDetailsCard = ({ replyData, handleInputChange, RadioOption }) => {
   if (replyData.enquiry_status !== "Order Confirmed") {
     return null;
   }
+
+
+  
 
   return (
     <Card className="mb-2">
@@ -197,16 +200,86 @@ const ShippingDetailsCard = ({ replyData, handleInputChange, RadioOption }) => {
     </Card>
   );
 };
+const ToggleViewSection = ({ title, icon: Icon, children }) => {
+  const [isExpanded, setIsExpanded] = useState(true);
+  const contentRef = useRef(null);
 
+  const toggleView = () => {
+    const content = contentRef.current;
+
+    if (isExpanded) {
+      // Folding animation
+      gsap.to(content, {
+        height: 0,
+        opacity: 0,
+        duration: 0.5,
+        ease: "power2.inOut",
+        transformOrigin: "top",
+        transformStyle: "preserve-3d",
+        rotateX: -90,
+        onComplete: () => setIsExpanded(false),
+      });
+    } else {
+      // Unfolding animation
+      setIsExpanded(true);
+      gsap.fromTo(
+        content,
+        {
+          height: 0,
+          opacity: 0,
+          rotateX: -90,
+        },
+        {
+          height: "auto",
+          opacity: 1,
+          duration: 0.5,
+          ease: "power2.inOut",
+          transformOrigin: "top",
+          transformStyle: "preserve-3d",
+          rotateX: 0,
+        }
+      );
+    }
+  };
+
+  return (
+    <Card className="mb-2 overflow-hidden">
+      <div
+        className="p-4 bg-yellow-50 cursor-pointer flex items-center justify-between rounded-t-xl"
+        onClick={toggleView}
+      >
+        <h2 className="text-lg font-semibold flex items-center gap-2">
+          <Icon className="h-5 w-5" />
+          {title}
+        </h2>
+        <div className="flex items-center gap-2">
+          {isExpanded ? (
+            <ChevronUp className="h-5 w-5 text-yellow-600" />
+          ) : (
+            <ChevronDown className="h-5 w-5 text-yellow-600" />
+          )}
+        </div>
+      </div>
+      <div
+        ref={contentRef}
+        className="transform-gpu"
+        style={{ transformStyle: "preserve-3d" }}
+      >
+        <CardContent className="p-6">{children}</CardContent>
+      </div>
+    </Card>
+  );
+};
 const EnquiryReplyEdit = () => {
   const { id } = useParams();
   const { toast } = useToast();
   const navigate = useNavigate();
-  const {
-    data: statusData,
-    isLoading: isStatusLoading,
-   
-  } = useStatus();
+  const [initialStatus, setInitialStatus] = useState("");
+  const [initialProSamBang, setInitialProSamBang] = useState(""); //psb
+  const [initialSample, setIntialSample] = useState(""); //sample dispatch
+  const [initialCargo, setIntialCargo] = useState(""); //cargo
+  const [initialStuffing, setIntialStuffing] = useState(""); //stuffing
+  const { data: statusData, isLoading: isStatusLoading } = useStatus();
   const originalId = decryptId(id);
   if (!originalId) {
     return (
@@ -268,6 +341,108 @@ const EnquiryReplyEdit = () => {
     },
   });
 
+  useEffect(() => {
+    if (enquiryDetails?.enquiry?.enquiry_status) {
+      setInitialStatus(enquiryDetails.enquiry.enquiry_status);
+    }
+    if (enquiryDetails?.enquiry?.uct_sample_bangalore) {
+      setInitialProSamBang(enquiryDetails.enquiry.uct_sample_bangalore);
+    }
+    if (enquiryDetails?.enquiry?.ple_dispatch_customer) {
+      setIntialSample(enquiryDetails.enquiry.ple_dispatch_customer);
+    }
+    if (enquiryDetails?.enquiry?.cargo_dispatch) {
+      setIntialCargo(enquiryDetails.enquiry.cargo_dispatch);
+    }
+    if (enquiryDetails?.enquiry?.stuffing_date) {
+      setIntialStuffing(enquiryDetails.enquiry.stuffing_date);
+    }
+  }, [enquiryDetails]);
+
+  console.log("intial", initialStatus);
+  const createTimelineEvent = async (data) => {
+    const token = localStorage.getItem("token");
+    const response = await fetch(
+      "https://adityaspice.com/app/public/api/panel-create-enquiry-timeline",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(data),
+      }
+    );
+    if (!response.ok) throw new Error("Failed to create timeline event");
+    return response.json();
+  };
+  const { mutate: addTimelineEvent } = useMutation({
+    mutationFn: createTimelineEvent,
+    onSuccess: () => {
+      console.log("timeline created");
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const { mutate: addPSBTimelineEvent } = useMutation({
+    mutationFn: createTimelineEvent,
+    onSuccess: () => {
+      console.log("PSB Timeline event created successfully");
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+  const { mutate: addSampleTimelineEvent } = useMutation({
+    mutationFn: createTimelineEvent,
+    onSuccess: () => {
+      console.log("Sample dispatch Timeline event created successfully");
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+  const { mutate: addCargoTimelineEvent } = useMutation({
+    mutationFn: createTimelineEvent,
+    onSuccess: () => {
+      console.log("Cargo Timeline event created successfully");
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+  const { mutate: addStuffingTimelineEvent } = useMutation({
+    mutationFn: createTimelineEvent,
+    onSuccess: () => {
+      console.log("Stuffing Timeline event created successfully");
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
   // Update Enquiry Mutation
   const updateEnquiryMutation = useMutation({
     mutationFn: async (data) => {
@@ -286,11 +461,90 @@ const EnquiryReplyEdit = () => {
       if (!response.ok) throw new Error("Failed to update enquiry");
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       toast({
         title: "Success",
         description: "Enquiry reply updated successfully",
       });
+      const token = localStorage.getItem("token");
+      const updatedResponse = await fetch(
+        `https://adityaspice.com/app/public/api/panel-fetch-enquiry-by-id/${originalId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!updatedResponse.ok)
+        throw new Error("Failed to fetch updated enquiry");
+
+      const updatedData = await updatedResponse.json();
+      const hasValueChanged = (oldValue, newValue) => {
+        if (!oldValue && !newValue) return false;
+        if ((!oldValue && newValue) || (oldValue && !newValue)) return true;
+        return oldValue !== newValue;
+      };
+
+      if (
+        initialStatus &&
+        updatedData?.enquiry?.enquiry_status !== initialStatus
+      ) {
+        addTimelineEvent({
+          enquiry_ref: updatedData?.enquiry.enquiry_ref,
+          type: "status_changed",
+          status_label: updatedData?.enquiry.enquiry_status,
+        });
+      }
+      if (
+        hasValueChanged(
+          initialProSamBang,
+          updatedData?.enquiry?.uct_sample_bangalore
+        )
+      ) {
+        if (updatedData?.enquiry?.uct_sample_bangalore) {
+          addPSBTimelineEvent({
+            enquiry_ref: updatedData?.enquiry.enquiry_ref,
+            type: "product_sBanglore",
+            date: updatedData?.enquiry?.uct_sample_bangalore,
+          });
+        }
+      }
+      if (
+        hasValueChanged(
+          initialSample,
+          updatedData?.enquiry?.ple_dispatch_customer
+        )
+      ) {
+        if (updatedData?.enquiry?.ple_dispatch_customer) {
+          addSampleTimelineEvent({
+            enquiry_ref: updatedData?.enquiry.enquiry_ref,
+            type: "sample_dispatch",
+            date: updatedData?.enquiry?.ple_dispatch_customer,
+          });
+        }
+      }
+      if (hasValueChanged(initialCargo, updatedData?.enquiry?.cargo_dispatch)) {
+        if (updatedData?.enquiry?.cargo_dispatch) {
+          addCargoTimelineEvent({
+            enquiry_ref: updatedData?.enquiry.enquiry_ref,
+            type: "cargo",
+            date: updatedData?.enquiry?.cargo_dispatch,
+          });
+        }
+      }
+      if (
+        hasValueChanged(initialStuffing, updatedData?.enquiry?.stuffing_date)
+      ) {
+        if (updatedData?.enquiry?.stuffing_date) {
+          addStuffingTimelineEvent({
+            enquiry_ref: updatedData?.enquiry.enquiry_ref,
+            type: "stuffing",
+            date: updatedData?.enquiry?.stuffing_date,
+          });
+        }
+      }
+
       navigate("/enquiries");
     },
     onError: (error) => {
@@ -311,6 +565,7 @@ const EnquiryReplyEdit = () => {
     "enquirySub_quoted_price",
     "enquirySub_final_price",
     "enquirySub_p2b_blend",
+    "enquirySub_remarks",
   ]);
 
   const defaultTableHeaders = [
@@ -318,11 +573,12 @@ const EnquiryReplyEdit = () => {
     { key: "enquirySub_shu", label: "SHU (in K)" },
     { key: "enquirySub_asta", label: "ASTA" },
     { key: "enquirySub_qlty_type", label: "Quality Type" },
-    { key: "enquirySub_course_type", label: "Course Type" },
+    { key: "enquirySub_course_type", label: "Coarse Type" },
     { key: "enquirySub_qnty", label: "Quantity (in MT)" },
     { key: "enquirySub_quoted_price", label: "Quoted Price" },
     { key: "enquirySub_final_price", label: "Final Price" },
-    { key: "enquirySub_p2b_blend", label: "P2B Blend" },
+
+    { key: "enquirySub_remarks", label: "Remarks" },
   ];
 
   const optionalHeaders = [
@@ -364,6 +620,7 @@ const EnquiryReplyEdit = () => {
         enquirySub_course_type: product.enquirySub_course_type,
         enquirySub_moist_value: product.enquirySub_moist_value,
         enquirySub_qnty: product.enquirySub_qnty,
+        enquirySub_remarks: product.enquirySub_remarks,
         enquirySub_quoted_price: product.enquirySub_quoted_price || "",
         enquirySub_final_price: product.enquirySub_final_price || "",
         enquirySub_p2b_blend: product.enquirySub_p2b_blend || "",
@@ -390,7 +647,7 @@ const EnquiryReplyEdit = () => {
         report_dt: enquiryDetails.enquiry.report_dt || "",
         shipment_etd: enquiryDetails.enquiry.shipment_etd || "",
         shipment_eta: enquiryDetails.enquiry.shipment_eta || "",
-        enquiry_status: enquiryDetails.enquiry.enquiry_status || "",
+        enquiry_status: enquiryDetails?.enquiry?.enquiry_status || "",
         enquiry_data: products,
       }));
       const columnsWithValues = optionalHeaders
@@ -473,7 +730,7 @@ const EnquiryReplyEdit = () => {
       report_dt: replyData.report_dt,
       shipment_etd: replyData.shipment_etd,
       shipment_eta: replyData.shipment_eta,
-      enquiry_status: replyData.enquiry_status,
+      enquiry_status: replyData?.enquiry_status,
       enquiry_data: enquiryData.map((product) => ({
         id: product.id,
         enquirySub_product_name: product.enquirySub_product_name,
@@ -485,6 +742,7 @@ const EnquiryReplyEdit = () => {
         enquirySub_course_type: product.enquirySub_course_type,
         enquirySub_moist_value: product.enquirySub_moist_value,
         enquirySub_qnty: product.enquirySub_qnty,
+        enquirySub_remarks: product.enquirySub_remarks,
         enquirySub_quoted_price: product.enquirySub_quoted_price,
         enquirySub_final_price: product.enquirySub_final_price,
         enquirySub_p2b_blend: product.enquirySub_p2b_blend,
@@ -730,53 +988,89 @@ const EnquiryReplyEdit = () => {
                   </thead>
                   <tbody>
                     {enquiryData.map((row, rowIndex) => (
-                      <tr key={rowIndex} className="border-b hover:bg-gray-50">
-                        {[...defaultTableHeaders, ...optionalHeaders]
-                          .filter((header) =>
-                            visibleColumns.includes(header.key)
-                          )
-                          .map((header) => (
-                            <td key={header.key} className="p-2 border">
-                              {header.key === "enquirySub_product_name" ? (
-                                <>
+                      <>
+                        <tr
+                          key={rowIndex}
+                          className="border-b hover:bg-gray-50"
+                        >
+                          {[...defaultTableHeaders, ...optionalHeaders]
+                            .filter((header) =>
+                              visibleColumns.includes(header.key)
+                            )
+                            .map((header) => (
+                              <td key={header.key} className="p-2 border">
+                                {header.key === "enquirySub_product_name" ? (
+                                  <>
+                                    <Input
+                                      value={row[header.key]}
+                                      className="w-full border border-gray-300 cursor-not-allowed bg-white"
+                                    />
+                                  </>
+                                ) : (
                                   <Input
                                     value={row[header.key]}
-                                    className="w-full border border-gray-300 cursor-not-allowed bg-white"
-                                  />
-                                </>
-                              ) : (
-                                <Input
-                                  value={row[header.key]}
-                                  onChange={(e) =>
-                                    handleRowDataChange(
-                                      rowIndex,
-                                      header.key,
-                                      e.target.value
-                                    )
-                                  }
-                                  disabled={[
-                                    "enquirySub_shu",
-                                    "enquirySub_asta",
-                                    "enquirySub_qlty_type",
-                                    "enquirySub_course_type",
-                                    "enquirySub_qnty",
-                                  ].includes(header.key)}
-                                  className={`w-full border border-gray-300 bg-yellow-50 ${
-                                    [
+                                    onChange={(e) =>
+                                      handleRowDataChange(
+                                        rowIndex,
+                                        header.key,
+                                        e.target.value
+                                      )
+                                    }
+                                    disabled={[
                                       "enquirySub_shu",
                                       "enquirySub_asta",
                                       "enquirySub_qlty_type",
                                       "enquirySub_course_type",
                                       "enquirySub_qnty",
-                                    ].includes(header.key)
-                                      ? "text-black font-bold bg-white cursor-not-allowed"
-                                      : ""
-                                  }`}
-                                />
-                              )}
-                            </td>
-                          ))}
-                      </tr>
+                                    ].includes(header.key)}
+                                    className={`w-full border border-gray-300 bg-yellow-50 ${
+                                      [
+                                        "enquirySub_shu",
+                                        "enquirySub_asta",
+                                        "enquirySub_qlty_type",
+                                        "enquirySub_course_type",
+                                        "enquirySub_qnty",
+                                      ].includes(header.key)
+                                        ? "text-black font-bold bg-white cursor-not-allowed"
+                                        : ""
+                                    }`}
+                                  />
+                                )}
+                              </td>
+                            ))}
+                        </tr>
+                        <tr
+                          key={`${rowIndex}-p2b`}
+                          className="border-b hover:bg-gray-50"
+                        >
+                          <td
+                            colSpan={
+                              [
+                                ...defaultTableHeaders,
+                                ...optionalHeaders,
+                              ].filter((header) =>
+                                visibleColumns.includes(header.key)
+                              ).length
+                            }
+                            className="p-2 border"
+                          >
+                            <div className="flex flex-row items-center ">
+                              <span className="font-medium w-32 ">Product Blend:</span>
+                              <Input
+                                value={row.enquirySub_p2b_blend}
+                                onChange={(e) =>
+                                  handleRowDataChange(
+                                    rowIndex,
+                                    "enquirySub_p2b_blend",
+                                    e.target.value
+                                  )
+                                }
+                                className=" border border-gray-300 bg-yellow-50"
+                              />
+                            </div>
+                          </td>
+                        </tr>
+                      </>
                     ))}
                   </tbody>
                 </table>
@@ -786,14 +1080,15 @@ const EnquiryReplyEdit = () => {
         </Card>
 
         {/* Reply Section */}
-        <Card className="mb-2">
+        {/* <Card className="mb-2">
           <div className="p-4 bg-yellow-50 cursor-pointer flex items-center rounded-t-xl justify-between">
             <h2 className="text-lg font-semibold flex items-center gap-2">
               <Repeat1 className="h-5 w-5" />
               Reply Details
             </h2>
           </div>
-          <CardContent className="p-6">
+          <CardContent className="p-6"> */}
+          <ToggleViewSection title="Reply Details" icon={Repeat1}>
             {/* Dates Section */}
             <div className="grid grid-cols-4 gap-6 mb-6">
               <div>
@@ -827,7 +1122,7 @@ const EnquiryReplyEdit = () => {
 
               <div>
                 <label className="block text-sm font-medium mb-2">
-                  UCT Sample Bangalore
+                  Pro. Sample Bangalore
                 </label>
                 <Input
                   type="date"
@@ -874,7 +1169,7 @@ const EnquiryReplyEdit = () => {
               <div>
                 <label className="block text-sm font-medium mb-2">Status</label>
                 <Select
-                  value={replyData.enquiry_status}
+                  value={replyData?.enquiry_status}
                   onValueChange={(value) =>
                     handleInputChange({ target: { value } }, "enquiry_status")
                   }
@@ -926,8 +1221,9 @@ const EnquiryReplyEdit = () => {
                 />
               </div>
             </div>
-          </CardContent>
-        </Card>
+            </ToggleViewSection>
+          {/* </CardContent>
+        </Card> */}
         <ShippingDetailsCard
           replyData={replyData}
           handleInputChange={handleInputChange}

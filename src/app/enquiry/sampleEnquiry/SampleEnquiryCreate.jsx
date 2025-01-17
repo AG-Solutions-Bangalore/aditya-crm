@@ -36,6 +36,7 @@ const productRowSchema = z.object({
   enquirySub_product_code: z.string().optional(),
   enquirySub_shu: z.string().optional(),
   enquirySub_asta: z.string().optional(),
+  enquirySub_remarks: z.string().optional(),
   enquirySub_qlty_type: z.string().optional(),
   enquirySub_stem_type: z.string().optional(),
   enquirySub_course_type: z.string().optional(),
@@ -121,12 +122,12 @@ const createEnquiry = async (data) => {
 // Header Component
 const EnquiryHeader = ({ progress, year }) => {
   return (
-    <div className="flex sticky top-0 z-10 border border-gray-200 rounded-lg justify-between items-start gap-8 mb-2 bg-white p-4 shadow-sm">
+    <div className="flex sticky top-0 z-10 border border-blue-200 rounded-lg justify-between items-start gap-8 mb-2 bg-blue-100 p-4 shadow-sm">
       <div className="flex-1">
         <h1 className="text-3xl font-bold text-gray-800">
           Sample Enquiry Form
         </h1>
-        <p className="text-gray-600 mt-2">
+        <p className="text-gray-800 mt-2">
           Create your sample enquiries:&nbsp;{year}
         </p>
       </div>
@@ -139,7 +140,7 @@ const EnquiryHeader = ({ progress, year }) => {
             <span className="text-sm font-medium">Requirements</span>
           </div>
 
-          <div className="w-full bg-gray-100 h-3 rounded-full overflow-hidden">
+          <div className="w-full bg-blue-300 h-3 rounded-full overflow-hidden">
             <div
               className="bg-yellow-500 h-full rounded-full transition-all duration-300 shadow-sm"
               style={{ width: `${progress}%` }}
@@ -147,7 +148,7 @@ const EnquiryHeader = ({ progress, year }) => {
           </div>
 
           <div className="flex justify-between items-center mt-2">
-            <span className="text-sm font-medium text-gray-600">Progress</span>
+            <span className="text-sm font-medium text-gray-800">Progress</span>
             <span className="text-sm font-medium text-yellow-600">
               {progress}% Complete
             </span>
@@ -172,6 +173,7 @@ const SampleEnquiryCreate = () => {
     "enquirySub_course_type",
     "enquirySub_qnty",
     "enquirySub_quoted_price",
+    "enquirySub_remarks"
   ]);
 
   const defaultTableHeaders = [
@@ -179,9 +181,10 @@ const SampleEnquiryCreate = () => {
     { key: "enquirySub_shu", label: "SHU (in K)" },
     { key: "enquirySub_asta", label: "ASTA" },
     { key: "enquirySub_qlty_type", label: "Quality Type" },
-    { key: "enquirySub_course_type", label: "Course Type" },
+    { key: "enquirySub_course_type", label: "Coarse Type" },
     { key: "enquirySub_qnty", label: "Quantity (in MT)" },
     { key: "enquirySub_quoted_price", label: "Quoted Price" },
+    { key: "enquirySub_remarks", label: "Remarks" },
   ];
 
   const optionalHeaders = [
@@ -198,6 +201,7 @@ const SampleEnquiryCreate = () => {
       enquirySub_product_code: "",
       enquirySub_shu: "",
       enquirySub_asta: "",
+      enquirySub_remarks:"",
       enquirySub_qlty_type: "",
       enquirySub_stem_type: "",
       enquirySub_course_type: "",
@@ -354,6 +358,7 @@ const SampleEnquiryCreate = () => {
         enquirySub_product_code: "",
         enquirySub_shu: "",
         enquirySub_asta: "",
+        enquirySub_remarks:"",
         enquirySub_qlty_type: "",
         enquirySub_stem_type: "",
         enquirySub_course_type: "",
@@ -418,6 +423,7 @@ const SampleEnquiryCreate = () => {
     enquirySub_product_name: "Product Name",
     enquirySub_shu: "SHU",
     enquirySub_asta: "ASTA",
+    enquirySub_remarks: "Remarks",
     enquirySub_qlty_type: "Quality Type",
     enquirySub_course_type: "Course Type",
     enquirySub_qnty: "Quantity",
@@ -490,7 +496,7 @@ const SampleEnquiryCreate = () => {
       <form onSubmit={handleSubmit} className="w-full p-4">
         <EnquiryHeader progress={progress} year={currentYear} />
 
-        <Card className="mb-6">
+        <Card className="mb-6 bg-gray-100 border-gray-200">
           <CardContent className="p-6">
             {/* Basic Details Section */}
             <div className="mb-8">
@@ -515,10 +521,10 @@ const SampleEnquiryCreate = () => {
                       handleInputChange({ target: { value } }, "customer_id")
                     }
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="bg-white border-blue-300">
                       <SelectValue placeholder="Select customer" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="bg-white border-blue-300">
                       {customerData?.customer?.map((customer) => (
                         <SelectItem
                           key={customer.id}
@@ -540,8 +546,16 @@ const SampleEnquiryCreate = () => {
                     type="date"
                     value={formData.enquiry_date}
                     onChange={(e) => handleInputChange(e, "enquiry_date")}
+                    className="bg-white border-blue-300"
                   />
                 </div>
+                <RadioOption
+                  label="Sample Required"
+                  value="sample_required"
+                  onChange={handleInputChange}
+                  currentValue={formData.sample_required}
+                  required={true}
+                />
               </div>
             </div>
 
@@ -554,12 +568,12 @@ const SampleEnquiryCreate = () => {
                 </div>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="sm">
+                    <Button variant="outline" size="sm" className="bg-white border-blue-300">
                       <Settings2 className="h-4 w-4 mr-2" />
                       Customize Columns
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuContent align="end" className="w-56 bg-white border-blue-300">
                     {optionalHeaders.map((header) => (
                       <DropdownMenuItem
                         key={header.key}
@@ -578,7 +592,7 @@ const SampleEnquiryCreate = () => {
               <div className="overflow-x-auto">
                 <table className="w-full border-collapse">
                   <thead>
-                    <tr className="bg-gray-50">
+                    <tr className="bg-blue-100">
                       {[...defaultTableHeaders, ...optionalHeaders]
                         .filter((header) => visibleColumns.includes(header.key))
                         .map((header) => (
@@ -597,7 +611,7 @@ const SampleEnquiryCreate = () => {
                   </thead>
                   <tbody>
                     {enquiryData.map((row, rowIndex) => (
-                      <tr key={rowIndex} className="border-b hover:bg-gray-50">
+                      <tr key={rowIndex} className="border-b hover:bg-yellow-50">
                         {[...defaultTableHeaders, ...optionalHeaders]
                           .filter((header) =>
                             visibleColumns.includes(header.key)
@@ -615,10 +629,10 @@ const SampleEnquiryCreate = () => {
                                     )
                                   }
                                 >
-                                  <SelectTrigger>
+                                  <SelectTrigger className="bg-white border-blue-300">
                                     <SelectValue placeholder="Select product" />
                                   </SelectTrigger>
-                                  <SelectContent>
+                                  <SelectContent className="bg-white border-blue-300">
                                     {productData?.product?.map((product) => (
                                       <SelectItem
                                         key={product.id}
@@ -660,7 +674,7 @@ const SampleEnquiryCreate = () => {
                                       ? "0"
                                       : undefined
                                   }
-                                  className="w-full border border-gray-300 bg-yellow-50"
+                                  className="w-full border border-blue-300 bg-white"
                                 />
                               )}
                             </td>
@@ -722,6 +736,7 @@ const SampleEnquiryCreate = () => {
                     placeholder="Enter Package details"
                     value={formData.packing_type}
                     onChange={(e) => handleInputChange(e, "packing_type")}
+                    className="bg-white border-blue-300"
                   />
                 </div>
                 <div>
@@ -733,16 +748,17 @@ const SampleEnquiryCreate = () => {
                     placeholder="Enter marking details"
                     value={formData.marking}
                     onChange={(e) => handleInputChange(e, "marking")}
+                    className="bg-white border-blue-300"
                   />
                 </div>
 
-                <RadioOption
+                {/* <RadioOption
                   label="Sample Required"
                   value="sample_required"
                   onChange={handleInputChange}
                   currentValue={formData.sample_required}
                   required={true}
-                />
+                /> */}
 
                 {/* Conditional Treatment Options */}
 
@@ -756,7 +772,7 @@ const SampleEnquiryCreate = () => {
                       handleInputChange(e, "special_instruction")
                     }
                     placeholder="Pls enter special instruction..."
-                    className="border rounded-md p-2 w-full h-24 resize-none"
+                    className="border rounded-md bg-white border-blue-300 p-2 w-full h-24 resize-none"
                   />
                 </div>
                 <div>
@@ -767,7 +783,7 @@ const SampleEnquiryCreate = () => {
                     value={formData.customer_feedback}
                     onChange={(e) => handleInputChange(e, "customer_feedback")}
                     placeholder="Pls enter customer feedback..."
-                    className="border rounded-md p-2 w-full h-24 resize-none"
+                    className="border bg-white border-blue-300 rounded-md p-2 w-full h-24 resize-none"
                   />
                 </div>
               </div>

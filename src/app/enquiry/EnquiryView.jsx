@@ -44,10 +44,11 @@ const PrintableEnquiry = React.forwardRef(({ enquiryDetails }, ref) => {
       { key: "enquirySub_moist_value", label: "Moisture Value" },
       { key: "enquirySub_final_price", label: "Final Price" },
       { key: "enquirySub_p2b_blend", label: "P2B Blend" },
+      { key: "enquirySub_remarks", label: "Remarks" },
     ];
 
     return (
-      <div className="mb-6">
+      <div className="mb-6  ">
         <table className="w-full border-collapse border border-gray-800">
           <thead>
             <tr>
@@ -60,7 +61,7 @@ const PrintableEnquiry = React.forwardRef(({ enquiryDetails }, ref) => {
                 Quality Type
               </th>
               <th className="border border-gray-800 p-1 text-sm">
-                Course Type
+              Coarse Type
               </th>
               <th className="border border-gray-800 p-1 text-sm">Quantity</th>
               <th className="border border-gray-800 p-1 text-sm">
@@ -313,7 +314,7 @@ const PrintableEnquiry = React.forwardRef(({ enquiryDetails }, ref) => {
 // Header Component
 const EnquiryHeader = ({ enquiryDetails, handlePrint }) => {
   return (
-    <div className="flex sticky top-0 z-10 border border-gray-200 rounded-lg justify-between items-start gap-8 mb-2 bg-white p-4 shadow-sm">
+    <div className="flex sticky top-0 z-10 border border-blue-200 rounded-lg justify-between items-start gap-8 mb-2 bg-blue-50 p-4 shadow-sm">
       <div className="flex-1">
         <div className="flex flex-col gap-2">
           <div className="flex items-center gap-2">
@@ -417,14 +418,14 @@ const EnquiryView = () => {
   });
 
   const InfoSection = ({ title, children }) => (
-    <div className="mb-6">
-      <h3 className="text-lg font-semibold mb-3 text-gray-800">{title}</h3>
+    <div className="mb-6 bg-blue-50 border-blue-300 rounded-lg p-2">
+      <h3 className="text-lg font-semibold mb-3 text-gray-800 bg-blue-200 rounded-lg p-1 pl-5">{title}</h3>
       <div className="grid grid-cols-3 gap-4">{children}</div>
     </div>
   );
 
   const InfoItem = ({ icon: Icon, label, value }) => (
-    <div className="flex items-center gap-2 p-2 bg-gray-50 rounded-lg">
+    <div className="flex items-center gap-2 p-2 bg-white rounded-lg">
       <Icon className="h-4 w-4 text-yellow-600 shrink-0" />
       <span className="text-sm text-gray-600">{label}:</span>
       <span className="text-sm font-bold">{value || "-"}</span>
@@ -438,13 +439,14 @@ const EnquiryView = () => {
       { key: "enquirySub_moist_value", label: "Moisture Value" },
       { key: "enquirySub_final_price", label: "Final Price" },
       { key: "enquirySub_p2b_blend", label: "P2B Blend" },
+      { key: "enquirySub_remarks", label: "Remarks" },
     ];
 
     return (
-      <div className="overflow-x-auto mt-4">
+      <div className="overflow-x-auto mt-4 ">
         <table className="w-full border-collapse border border-gray-200 rounded-lg">
           <thead>
-            <tr className="bg-yellow-500">
+            <tr className="bg-blue-200">
               <th className="p-2 text-left border border-gray-200 font-medium text-black">
                 Product Name
               </th>
@@ -458,7 +460,7 @@ const EnquiryView = () => {
                 Quality Type
               </th>
               <th className="p-2 text-center border border-gray-200 font-medium text-black">
-                Course Type
+              Coarse Type
               </th>
               <th className="p-2 text-center border border-gray-200 font-medium text-black">
                 Quantity
@@ -577,7 +579,7 @@ const EnquiryView = () => {
           />
 
           <Card>
-            <CardContent className="p-6">
+            <CardContent className="p-2">
               <InfoSection title="Basic Information">
                 <InfoItem
                   icon={Package}
@@ -640,8 +642,8 @@ const EnquiryView = () => {
                 </div>
               </InfoSection>
 
-              <div className="mt-6">
-                <h3 className="text-lg font-semibold mb-3 text-gray-800">
+              <div className="mt-6 mb-4 p-2 bg-blue-50 border-blue-300 rounded-lg">
+                <h3 className="text-lg pl-5 font-semibold  text-gray-800 bg-blue-200 p-1 rounded-lg">
                   Products Information
                 </h3>
                 <ProductsTable products={enquiryDetails?.enquirySub} />

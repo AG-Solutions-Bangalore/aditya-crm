@@ -90,6 +90,11 @@ const CustomerList = () => {
       header: "Country",
       cell: ({ row }) => <div>{row.getValue("customer_country")}</div>,
     },
+    {
+      accessorKey: "customer_port",
+      header: "Port",
+      cell: ({ row }) => <div>{row.getValue("customer_port")}</div>,
+    },
 
     {
       accessorKey: "customer_status",

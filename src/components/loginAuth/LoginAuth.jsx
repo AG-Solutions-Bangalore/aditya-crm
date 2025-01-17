@@ -83,19 +83,19 @@ export default function LoginAuth() {
           const userType = res.data.UserInfo.user.user_type;
           switch (userType) {
             case 1:
-              navigate("/home");
+              navigate("/enquiries");
               break;
             case 2:
-              navigate("/home");
+              navigate("/enquiries");
               break;
             case 3:
-              navigate("/home");
+              navigate("/enquiries");
               break;
             case 4:
-              navigate("/home");
+              navigate("/enquiries");
               break;
             default:
-              navigate("/home");
+              navigate("/enquiries");
           }
         } else {
           throw new Error("No token received");

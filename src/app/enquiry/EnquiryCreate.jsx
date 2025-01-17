@@ -12,7 +12,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
 import { PlusCircle, MinusCircle, Settings2 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import Page from "../dashboard/page";
@@ -44,6 +44,7 @@ const productRowSchema = z.object({
   enquirySub_quoted_price: z.string().optional(),
   enquirySub_final_price: z.number().optional(),
   enquirySub_p2b_blend: z.string().optional(),
+  enquirySub_remarks: z.string().optional(),
 });
 
 const enquiryFormSchema = z.object({
@@ -126,10 +127,10 @@ const createEnquiry = async (data) => {
 // Header Component
 const EnquiryHeader = ({ progress, year }) => {
   return (
-    <div className="flex sticky top-0 z-10 border border-gray-200 rounded-lg justify-between items-start gap-8 mb-2 bg-white p-4 shadow-sm">
+    <div className="flex sticky top-0 z-10 border border-blue-200 rounded-lg justify-between items-start gap-8 mb-2 bg-blue-100 p-4 shadow-sm">
       <div className="flex-1">
         <h1 className="text-3xl font-bold text-gray-800">Enquiry Form</h1>
-        <p className="text-gray-600 mt-2">Create your enquiries:&nbsp;{year}</p>
+        <p className="text-gray-800 mt-2">Create your enquiries:&nbsp;{year}</p>
       </div>
 
       <div className="flex-1 pt-2">
@@ -140,7 +141,7 @@ const EnquiryHeader = ({ progress, year }) => {
             <span className="text-sm font-medium">Requirements</span>
           </div>
 
-          <div className="w-full bg-gray-100 h-3 rounded-full overflow-hidden">
+          <div className="w-full bg-blue-300  h-3 rounded-full overflow-hidden">
             <div
               className="bg-yellow-500 h-full rounded-full transition-all duration-300 shadow-sm"
               style={{ width: `${progress}%` }}
@@ -148,7 +149,7 @@ const EnquiryHeader = ({ progress, year }) => {
           </div>
 
           <div className="flex justify-between items-center mt-2">
-            <span className="text-sm font-medium text-gray-600">Progress</span>
+            <span className="text-sm font-medium text-gray-800">Progress</span>
             <span className="text-sm font-medium text-yellow-600">
               {progress}% Complete
             </span>
@@ -174,16 +175,18 @@ const EnquiryCreate = () => {
     "enquirySub_course_type",
     "enquirySub_qnty",
     "enquirySub_quoted_price",
+    "enquirySub_remarks",
   ]);
 
   const defaultTableHeaders = [
-    { key: "enquirySub_product_name", label: "Product Name", required:true  },
-    { key: "enquirySub_shu", label: "SHU (in K)",  },
-    { key: "enquirySub_asta", label: "ASTA",  },
-    { key: "enquirySub_qlty_type", label: "Quality Type",},
-    { key: "enquirySub_course_type", label: "Course Type" },
+    { key: "enquirySub_product_name", label: "Product Name", required: true },
+    { key: "enquirySub_shu", label: "SHU (in K)" },
+    { key: "enquirySub_asta", label: "ASTA" },
+    { key: "enquirySub_qlty_type", label: "Quality Type" },
+    { key: "enquirySub_course_type", label: "Coarse Type" },
     { key: "enquirySub_qnty", label: "Quantity (in MT)" },
     { key: "enquirySub_quoted_price", label: "Quoted Price" },
+    { key: "enquirySub_remarks", label: "Remarks" },
   ];
 
   const optionalHeaders = [
@@ -205,6 +208,7 @@ const EnquiryCreate = () => {
       enquirySub_course_type: "",
       enquirySub_moist_value: "",
       enquirySub_qnty: "",
+      enquirySub_remarks: "",
       enquirySub_quoted_price: "",
       enquirySub_final_price: 0,
       enquirySub_p2b_blend: "",
@@ -228,8 +232,8 @@ const EnquiryCreate = () => {
     enquiry_date: getTodayDate(),
     packing_type: "",
     marking: "",
-    customer_feedback:"",
-    special_instruction:"",
+    customer_feedback: "",
+    special_instruction: "",
     shipment_date: "",
     sample_required: "No",
     treatment_required: "No",
@@ -333,9 +337,7 @@ const EnquiryCreate = () => {
   };
 
   const handleRowDataChange = (rowIndex, field, value) => {
-    const numericFields = [
-      "enquirySub_final_price"
-    ];
+    const numericFields = ["enquirySub_final_price"];
     let processedValue = value;
 
     if (numericFields.includes(field)) {
@@ -379,6 +381,7 @@ const EnquiryCreate = () => {
         enquirySub_qlty_type: "",
         enquirySub_stem_type: "",
         enquirySub_course_type: "",
+        enquirySub_remarks: "",
         enquirySub_moist_value: "",
         enquirySub_qnty: "",
         enquirySub_quoted_price: "",
@@ -440,6 +443,7 @@ const EnquiryCreate = () => {
     steam_sterlizaton: "Steam Sterilization",
     enquirySub_product_name: "Product Name",
     enquirySub_shu: "SHU",
+    enquirySub_remarks: "Remarks",
     enquirySub_asta: "ASTA",
     enquirySub_qlty_type: "Quality Type",
     enquirySub_course_type: "Course Type",
@@ -514,7 +518,7 @@ const EnquiryCreate = () => {
       <form onSubmit={handleSubmit} className="w-full p-4">
         <EnquiryHeader progress={progress} year={currentYear} />
 
-        <Card className="mb-6">
+        <Card className="mb-6  bg-gray-100 border-gray-200">
           <CardContent className="p-6">
             {/* Basic Details Section */}
             <div className="mb-8">
@@ -539,10 +543,10 @@ const EnquiryCreate = () => {
                       handleInputChange({ target: { value } }, "customer_id")
                     }
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="bg-white border-blue-300">
                       <SelectValue placeholder="Select customer" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="bg-white border-blue-300">
                       {customerData?.customer?.map((customer) => (
                         <SelectItem
                           key={customer.id}
@@ -564,6 +568,7 @@ const EnquiryCreate = () => {
                     type="date"
                     value={formData.enquiry_date}
                     onChange={(e) => handleInputChange(e, "enquiry_date")}
+                    className="bg-white border-blue-300"
                   />
                 </div>
 
@@ -575,6 +580,7 @@ const EnquiryCreate = () => {
                     type="date"
                     value={formData.shipment_date}
                     onChange={(e) => handleInputChange(e, "shipment_date")}
+                    className="bg-white border-blue-300"
                   />
                 </div>
               </div>
@@ -589,12 +595,12 @@ const EnquiryCreate = () => {
                 </div>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="sm">
+                    <Button variant="outline" size="sm" className="bg-white border-blue-300">
                       <Settings2 className="h-4 w-4 mr-2" />
                       Customize Columns
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuContent align="end" className="w-56 bg-white border-blue-300"  >
                     {optionalHeaders.map((header) => (
                       <DropdownMenuItem
                         key={header.key}
@@ -613,7 +619,7 @@ const EnquiryCreate = () => {
               <div className="overflow-x-auto">
                 <table className="w-full border-collapse">
                   <thead>
-                    <tr className="bg-gray-50">
+                    <tr className="bg-blue-100">
                       {[...defaultTableHeaders, ...optionalHeaders]
                         .filter((header) => visibleColumns.includes(header.key))
                         .map((header) => (
@@ -632,7 +638,7 @@ const EnquiryCreate = () => {
                   </thead>
                   <tbody>
                     {enquiryData.map((row, rowIndex) => (
-                      <tr key={rowIndex} className="border-b hover:bg-gray-50">
+                      <tr key={rowIndex} className="border-b hover:bg-yellow-50">
                         {[...defaultTableHeaders, ...optionalHeaders]
                           .filter((header) =>
                             visibleColumns.includes(header.key)
@@ -650,10 +656,13 @@ const EnquiryCreate = () => {
                                     )
                                   }
                                 >
-                                  <SelectTrigger>
+                                  <SelectTrigger
+                                  className="bg-white border-blue-300">
                                     <SelectValue placeholder="Select product" />
                                   </SelectTrigger>
-                                  <SelectContent>
+                                  <SelectContent
+                                  className="bg-white border-blue-300"
+                                  >
                                     {productData?.product?.map((product) => (
                                       <SelectItem
                                         key={product.id}
@@ -675,30 +684,27 @@ const EnquiryCreate = () => {
                                     )
                                   }
                                   type={
-                                    [
-                                      "enquirySub_final_price",
-                                 
-                                    ].includes(header.key)
+                                    ["enquirySub_final_price"].includes(
+                                      header.key
+                                    )
                                       ? "number"
                                       : "text"
                                   }
                                   step={
-                                    [
-                                      "enquirySub_final_price",
-                                
-                                    ].includes(header.key)
+                                    ["enquirySub_final_price"].includes(
+                                      header.key
+                                    )
                                       ? "any"
                                       : undefined
                                   }
                                   min={
-                                    [
-                                 
-                                      "enquirySub_final_price",
-                                    ].includes(header.key)
+                                    ["enquirySub_final_price"].includes(
+                                      header.key
+                                    )
                                       ? "0"
                                       : undefined
                                   }
-                                  className="w-full border border-gray-300 bg-yellow-50"
+                                  className="w-full border- border-blue-300 bg-white"
                                 />
                               )}
                             </td>
@@ -755,11 +761,12 @@ const EnquiryCreate = () => {
                       ))}
                     </SelectContent>
                   </Select> */}
-                    <Input
+                  <Input
                     type="text"
                     placeholder="Enter Package details"
                     value={formData.packing_type}
                     onChange={(e) => handleInputChange(e, "packing_type")}
+                    className="bg-white border-blue-300"
                   />
                 </div>
                 <div>
@@ -771,6 +778,7 @@ const EnquiryCreate = () => {
                     placeholder="Enter marking details"
                     value={formData.marking}
                     onChange={(e) => handleInputChange(e, "marking")}
+                    className="bg-white border-blue-300"
                   />
                 </div>
 
@@ -801,6 +809,7 @@ const EnquiryCreate = () => {
                             "etd"
                           )
                         }
+                        
                       />
                       <label>ETD</label>
                     </div>
@@ -843,7 +852,7 @@ const EnquiryCreate = () => {
                       handleInputChange(e, "special_instruction")
                     }
                     placeholder="Pls enter special instruction..."
-                    className="border rounded-md p-2 w-full h-24 resize-none"
+                    className="border rounded-md bg-white border-blue-300 p-2 w-full h-24 resize-none"
                   />
                 </div>
                 <div>
@@ -854,7 +863,7 @@ const EnquiryCreate = () => {
                     value={formData.customer_feedback}
                     onChange={(e) => handleInputChange(e, "customer_feedback")}
                     placeholder="Pls enter customer feedback..."
-                    className="border rounded-md p-2 w-full h-24 resize-none"
+                    className="border rounded-md p-2 bg-white border-blue-300 w-full h-24 resize-none"
                   />
                 </div>
               </div>
@@ -893,4 +902,4 @@ const EnquiryCreate = () => {
 
 export default EnquiryCreate;
 
-//sajid
+//sajid -done

@@ -70,7 +70,11 @@ const CreateProduct = () => {
               <p className="text-xs text-yellow-700 ml-2 mt-1 w-32 hover:text-red-800 cursor-pointer">
             Create Product
           </p>
-        ) : null}
+        ) : pathname === "/create-sample-enquiries" ?(
+          <p className="text-xs text-yellow-700 ml-2 mt-1 w-32 hover:text-red-800 cursor-pointer">
+        Create Product
+      </p>
+    ): null}
          </PopoverTrigger>
          <PopoverContent className="w-80">
            <div className="grid gap-4">
