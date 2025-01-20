@@ -75,7 +75,7 @@ const EnquiryHeader = ({ enquiryDetails }) => {
 
 // Shipping Details Card Component
 const ShippingDetailsCard = ({ replyData, handleInputChange, RadioOption }) => {
-  if (replyData.enquiry_status !== "Order Confirmed") {
+  if (replyData.enquiry_status !== "Confirmed") {
     return null;
   }
 

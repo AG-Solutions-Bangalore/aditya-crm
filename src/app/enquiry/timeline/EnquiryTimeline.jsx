@@ -90,12 +90,13 @@ const EnquiryTimeline = () => {
     { status_name: "New Enquiry", color: "bg-green-100 text-green-800" },
     { status_name: "Order Cancel", color: "bg-red-100 text-red-800" },
     { status_name: "Order Closed", color: "bg-gray-100 text-gray-800" },
-    { status_name: "Order Confirmed", color: "bg-teal-100 text-teal-800" },
+    { status_name: "Confirmed", color: "bg-teal-100 text-teal-800" },
     { status_name: "Order Delivered", color: "bg-purple-100 text-purple-800" },
     { status_name: "Order Progress", color: "bg-yellow-100 text-yellow-800" },
     { status_name: "Order Shipped", color: "bg-orange-100 text-orange-800" },
     { status_name: "Quotation", color: "bg-pink-100 text-pink-800" },
     { status_name: "Sample", color: "bg-indigo-100 text-indigo-800" },
+    { status_name: "Update", color: "bg-pink-100 text-pink-800" },
   ];
 
   if (!originalId) {
