@@ -404,7 +404,7 @@ const EnquiryList = () => {
                 })}
             </DropdownMenuContent>
           </DropdownMenu>
-          {(userType === 2 || userType === 3) && (
+          {(userType === 2 || userType === 3 || userType === 1) && (
             <Button
               variant="default"
               className="ml-2 bg-yellow-500 text-black hover:bg-yellow-100"
