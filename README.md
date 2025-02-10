@@ -164,7 +164,7 @@ npm run preview     # Preview production build
 ## Project Structure
 
 ```
-sajid-tech-aditya-crm/
+aditya-crm/
 ├── src/
 │   ├── app/                    # Application modules
 │   │   ├── auth/              # Authentication

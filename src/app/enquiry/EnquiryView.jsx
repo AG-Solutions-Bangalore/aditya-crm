@@ -19,6 +19,7 @@ import { useParams } from "react-router-dom";
 
 import { useReactToPrint } from "react-to-print";
 import { decryptId } from "@/utils/encyrption/Encyrption";
+import BASE_URL from "@/config/BaseUrl";
 
 const PrintableEnquiry = React.forwardRef(({ enquiryDetails }, ref) => {
   const InfoSection = ({ title, items }) => (
@@ -392,7 +393,7 @@ const EnquiryView = () => {
     queryFn: async () => {
       const token = localStorage.getItem("token");
       const response = await fetch(
-        `https://adityaspice.com/app/public/api/panel-fetch-enquiry-by-id/${originalId}`,
+         `${BASE_URL}/api/panel-fetch-enquiry-by-id/${originalId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,

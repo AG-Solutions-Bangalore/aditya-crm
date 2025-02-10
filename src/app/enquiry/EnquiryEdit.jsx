@@ -48,6 +48,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { ProgressBar } from "@/components/spinner/ProgressBar";
 import { decryptId } from "@/utils/encyrption/Encyrption";
 import { useStatus } from "@/hooks/useStatus";
+import BASE_URL from "@/config/BaseUrl";
 
 // Header Component
 
@@ -181,7 +182,7 @@ const EnquiryEdit = () => {
     queryFn: async () => {
       const token = localStorage.getItem("token");
       const response = await fetch(
-        `https://adityaspice.com/app/public/api/panel-fetch-enquiry-by-id/${originalId}`,
+         `${BASE_URL}/api/panel-fetch-enquiry-by-id/${originalId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -204,7 +205,7 @@ const EnquiryEdit = () => {
     queryFn: async () => {
       const token = localStorage.getItem("token");
       const response = await fetch(
-        "https://adityaspice.com/app/public/api/panel-fetch-customer",
+         `${BASE_URL}/api/panel-fetch-customer`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -222,7 +223,7 @@ const EnquiryEdit = () => {
     queryFn: async () => {
       const token = localStorage.getItem("token");
       const response = await fetch(
-        "https://adityaspice.com/app/public/api/panel-fetch-product",
+         `${BASE_URL}/api/panel-fetch-product`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -270,7 +271,7 @@ const EnquiryEdit = () => {
   const createTimelineEvent = async (data) => {
     const token = localStorage.getItem("token");
     const response = await fetch(
-      "https://adityaspice.com/app/public/api/panel-create-enquiry-timeline",
+       `${BASE_URL}/api/panel-create-enquiry-timeline`,
       {
         method: "POST",
         headers: {
@@ -302,7 +303,7 @@ const EnquiryEdit = () => {
     mutationFn: async (productId) => {
       const token = localStorage.getItem("token");
       const response = await fetch(
-        `https://adityaspice.com/app/public/api/panel-delete-enquirySub/${productId}`,
+         `${BASE_URL}/api/panel-delete-enquirySub/${productId}`,
         {
           method: "DELETE",
           headers: {
@@ -333,7 +334,7 @@ const EnquiryEdit = () => {
     mutationFn: async (data) => {
       const token = localStorage.getItem("token");
       const response = await fetch(
-        `https://adityaspice.com/app/public/api/panel-update-enquiry/${originalId}`,
+         `${BASE_URL}/api/panel-update-enquiry/${originalId}`,
         {
           method: "PUT",
           headers: {
@@ -353,7 +354,7 @@ const EnquiryEdit = () => {
       });
       const token = localStorage.getItem("token");
       const updatedResponse = await fetch(
-        `https://adityaspice.com/app/public/api/panel-fetch-enquiry-by-id/${originalId}`,
+         `${BASE_URL}/api/panel-fetch-enquiry-by-id/${originalId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,

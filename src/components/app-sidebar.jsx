@@ -33,7 +33,7 @@ export function AppSidebar({ ...props }) {
   const emailL = localStorage.getItem("email");
   const userType = localStorage.getItem("userType");
   const pageControl = JSON.parse(localStorage.getItem("pageControl")) || [];
-
+  const companyName = localStorage.getItem("company_name");
   const data = {
     user: {
       name: `${nameL}`,
@@ -42,9 +42,9 @@ export function AppSidebar({ ...props }) {
     },
     teams: [
       {
-        name: "ADITYA SPICE ",
+        name: `${companyName}`,
         logo: GalleryVerticalEnd,
-        plan: "AgSolution",
+        plan: "",
       },
       {
         name: "Acme Corp.",
@@ -132,7 +132,6 @@ export function AppSidebar({ ...props }) {
       },
     ],
   };
-  
 
   return (
     <Sidebar collapsible="icon" {...props}>

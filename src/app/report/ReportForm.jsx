@@ -14,6 +14,7 @@ import {
 import Page from "../dashboard/page";
 import { useStatus } from "@/hooks/useStatus";
 import { FileDown } from "lucide-react";
+import BASE_URL from "@/config/BaseUrl";
 
 // Fetch customers API
 const fetchCustomers = async () => {
@@ -21,7 +22,7 @@ const fetchCustomers = async () => {
   if (!token) throw new Error("No authentication token found");
 
   const response = await fetch(
-    "https://adityaspice.com/app/public/api/panel-fetch-customer",
+     `${BASE_URL}/api/panel-fetch-customer`,
     {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -85,7 +86,7 @@ const ReportForm = () => {
       if (!token) throw new Error("No authentication token found");
 
       const response = await fetch(
-        "https://adityaspice.com/app/public/api/panel-download-enquiry-details-report",
+         `${BASE_URL}/api/panel-download-enquiry-details-report`,
         {
           method: "POST",
           headers: {

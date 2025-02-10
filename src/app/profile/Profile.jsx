@@ -7,11 +7,15 @@ import { useToast } from "@/hooks/use-toast";
 import { Eye, EyeOff } from "lucide-react";
 import { z } from "zod";
 import Page from "../dashboard/page";
+import BASE_URL from "@/config/BaseUrl";
 
 const profileSchema = z.object({
   name: z.string(),
   email: z.string().email("Invalid email address"),
-  mobile: z.string().length(10, "Mobile number must be exactly 10 digits").regex(/^\d+$/, "Mobile number must contain only digits"),
+  mobile: z
+    .string()
+    .length(10, "Mobile number must be exactly 10 digits")
+    .regex(/^\d+$/, "Mobile number must contain only digits"),
 });
 
 const Profile = () => {
@@ -28,7 +32,7 @@ const Profile = () => {
     queryKey: ["profile"],
     queryFn: async () => {
       const token = localStorage.getItem("token");
-      const response = await fetch("https://adityaspice.com/app/public/api/panel-fetch-profile", {
+      const response = await fetch(`${BASE_URL}/api/panel-fetch-profile`, {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
@@ -50,17 +54,20 @@ const Profile = () => {
   const updateProfile = useMutation({
     mutationFn: async (data) => {
       const token = localStorage.getItem("token");
-      const response = await fetch("https://adityaspice.com/app/public/api/panel-update-profile", {
-        method: "PUT",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email: data.email,
-          mobile: data.mobile,
-        }),
-      });
+      const response = await fetch(
+         `${BASE_URL}/api/panel-update-profile`,
+        {
+          method: "PUT",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            email: data.email,
+            mobile: data.mobile,
+          }),
+        }
+      );
       if (!response.ok) throw new Error("Failed to update profile");
       return response.json();
     },
@@ -81,7 +88,7 @@ const Profile = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    
+
     // For mobile, only allow digits and max 10 characters
     if (name === "mobile") {
       if (value.length <= 10 && /^\d*$/.test(value)) {
@@ -89,7 +96,7 @@ const Profile = () => {
       }
       return;
     }
-    
+
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
@@ -120,14 +127,17 @@ const Profile = () => {
       <div className="w-full p-4">
         <Card>
           <CardHeader>
-            <CardTitle className="text-2xl font-bold text-gray-800">Account Settings</CardTitle>
+            <CardTitle className="text-2xl font-bold text-gray-800">
+              Profile
+            </CardTitle>
           </CardHeader>
           <CardContent className="p-6">
-            <form onSubmit={handleSubmit} className="grid grid-rows-4 lg:grid-cols-2 gap-4">
+            <form
+              onSubmit={handleSubmit}
+              className="grid grid-rows-4 lg:grid-cols-2 gap-4"
+            >
               <div>
-                <label className="block text-sm font-medium mb-2">
-                  Name
-                </label>
+                <label className="block text-sm font-medium mb-2">Name</label>
                 <Input
                   name="name"
                   value={formData.name || ""}
@@ -137,9 +147,7 @@ const Profile = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-2">
-                  Email
-                </label>
+                <label className="block text-sm font-medium mb-2">Email</label>
                 <Input
                   name="email"
                   type="email"
@@ -150,9 +158,7 @@ const Profile = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-2">
-                  Mobile
-                </label>
+                <label className="block text-sm font-medium mb-2">Mobile</label>
                 <Input
                   name="mobile"
                   type="text"

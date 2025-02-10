@@ -29,6 +29,7 @@ import { ProgressBar } from "@/components/spinner/ProgressBar";
 import CreateCustomer from "../customer/CreateCustomer";
 import CreateProduct from "../product/CreateProduct";
 import { useCurrentYear } from "../hooks/useCurrentYear";
+import BASE_URL from "@/config/BaseUrl";
 
 // Validation Schemas
 const productRowSchema = z.object({
@@ -73,7 +74,7 @@ const fetchCustomers = async () => {
   if (!token) throw new Error("No authentication token found");
 
   const response = await fetch(
-    "https://adityaspice.com/app/public/api/panel-fetch-customer",
+    `${BASE_URL}/api/panel-fetch-customer`,
     {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -91,7 +92,7 @@ const fetchProducts = async () => {
   if (!token) throw new Error("No authentication token found");
 
   const response = await fetch(
-    "https://adityaspice.com/app/public/api/panel-fetch-product",
+    `${BASE_URL}/api/panel-fetch-product`,
     {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -109,7 +110,7 @@ const createEnquiry = async (data) => {
   if (!token) throw new Error("No authentication token found");
 
   const response = await fetch(
-    "https://adityaspice.com/app/public/api/panel-create-enquiry",
+     `${BASE_URL}/api/panel-create-enquiry`,
     {
       method: "POST",
       headers: {
@@ -902,4 +903,4 @@ const EnquiryCreate = () => {
 
 export default EnquiryCreate;
 
-//sajid -done
+

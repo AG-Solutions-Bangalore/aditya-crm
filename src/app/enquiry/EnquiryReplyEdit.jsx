@@ -40,6 +40,7 @@ import { ProgressBar } from "@/components/spinner/ProgressBar";
 import { gsap } from "gsap";
 import { decryptId } from "@/utils/encyrption/Encyrption";
 import { useStatus } from "@/hooks/useStatus";
+import BASE_URL from "@/config/BaseUrl";
 // Header Component (same as EnquiryEdit)
 
 const EnquiryHeader = ({ enquiryDetails }) => {
@@ -329,7 +330,7 @@ const EnquiryReplyEdit = () => {
     queryFn: async () => {
       const token = localStorage.getItem("token");
       const response = await fetch(
-        `https://adityaspice.com/app/public/api/panel-fetch-enquiry-by-id/${originalId}`,
+         `${BASE_URL}/api/panel-fetch-enquiry-by-id/${originalId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -363,7 +364,7 @@ const EnquiryReplyEdit = () => {
   const createTimelineEvent = async (data) => {
     const token = localStorage.getItem("token");
     const response = await fetch(
-      "https://adityaspice.com/app/public/api/panel-create-enquiry-timeline",
+       `${BASE_URL}/api/panel-create-enquiry-timeline`,
       {
         method: "POST",
         headers: {
@@ -448,7 +449,7 @@ const EnquiryReplyEdit = () => {
     mutationFn: async (data) => {
       const token = localStorage.getItem("token");
       const response = await fetch(
-        `https://adityaspice.com/app/public/api/panel-update-enquiry/${originalId}`,
+         `${BASE_URL}/api/panel-update-enquiry/${originalId}`,
         {
           method: "PUT",
           headers: {
@@ -468,7 +469,7 @@ const EnquiryReplyEdit = () => {
       });
       const token = localStorage.getItem("token");
       const updatedResponse = await fetch(
-        `https://adityaspice.com/app/public/api/panel-fetch-enquiry-by-id/${originalId}`,
+         `${BASE_URL}/api/panel-fetch-enquiry-by-id/${originalId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,

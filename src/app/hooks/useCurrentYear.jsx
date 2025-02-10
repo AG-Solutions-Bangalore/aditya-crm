@@ -1,3 +1,4 @@
+import BASE_URL from "@/config/BaseUrl";
 import { useQuery } from "@tanstack/react-query";
 
 export const useCurrentYear = () => {
@@ -6,7 +7,7 @@ export const useCurrentYear = () => {
     if (!token) throw new Error("No authentication token found");
 
     const response = await fetch(
-      "https://adityaspice.com/app/public/api/panel-fetch-year",
+       `${BASE_URL}/api/panel-fetch-year`,
       {
         headers: {
           Authorization: `Bearer ${token}`,
