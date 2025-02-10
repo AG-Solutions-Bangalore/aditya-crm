@@ -30,6 +30,7 @@ import {
 import { useParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Chrono } from "react-chrono";
+import BASE_URL from "@/config/BaseUrl";
 
 const ClaudeTimeline = () => {
   const { id } = useParams();
@@ -44,7 +45,7 @@ const ClaudeTimeline = () => {
     queryFn: async () => {
       const token = localStorage.getItem("token");
       const response = await fetch(
-        `https://adityaspice.com/app/public/api/panel-fetch-enquiry-by-id/${id}`,
+         `${BASE_URL}/api/panel-fetch-enquiry-by-id/${id}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -95,7 +96,7 @@ const ClaudeTimeline = () => {
     queryFn: async () => {
       const token = localStorage.getItem("token");
       const response = await fetch(
-        `https://adityaspice.com/app/public/api/panel-fetch-enquiry-timeline-by-id/${enquiryRefbyId}`,
+        `${BASE_URL}/api/panel-fetch-enquiry-timeline-by-id/${enquiryRefbyId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -111,7 +112,7 @@ const ClaudeTimeline = () => {
   const createTimelineEvent = async (data) => {
     const token = localStorage.getItem("token");
     const response = await fetch(
-      "https://adityaspice.com/app/public/api/panel-create-enquiry-timeline",
+       `${BASE_URL}/api/panel-create-enquiry-timeline`,
       {
         method: "POST",
         headers: {
@@ -135,7 +136,7 @@ const ClaudeTimeline = () => {
   const updateAcknowledgment = async (id) => {
     const token = localStorage.getItem("token");
     const response = await fetch(
-      `https://adityaspice.com/app/public/api/panel-update-enquiry-timeline/${id}`,
+       `${BASE_URL}/api/panel-update-enquiry-timeline/${id}`,
       {
         method: "PUT",
         headers: {

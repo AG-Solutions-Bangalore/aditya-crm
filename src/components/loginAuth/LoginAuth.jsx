@@ -72,6 +72,7 @@ export default function LoginAuth() {
           localStorage.setItem("username", res.data.UserInfo.user.name);
           localStorage.setItem("email", res.data.UserInfo.user.email);
           localStorage.setItem("userType", res.data.UserInfo.user.user_type);
+          localStorage.setItem("company_name", res.data.company_detils.company_name);
 
           // Show success toast
           toast({

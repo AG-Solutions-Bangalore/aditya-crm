@@ -17,6 +17,7 @@ import {
   Loader2,
 } from "lucide-react";
 import Page from "../dashboard/page";
+import BASE_URL from "@/config/BaseUrl";
 
 const StatCard = ({ title, value, icon: Icon, className }) => (
   <Card className="relative overflow-hidden">
@@ -92,19 +93,16 @@ const CountryData = ({ enquiries }) => {
   return (
     <Card className="mt-2">
       <CardHeader>
-       
-          
         <div className="flex justify-between   space-x-2">
           {enquiryCountryData.map((country, index) => (
             <div key={index} className="flex flex-row items-center">
-              <div className=" font-normal">{country.customer_country}</div>&nbsp;:&nbsp;
+              <div className=" font-normal">{country.customer_country}</div>
+              &nbsp;:&nbsp;
               <div className="text-lg font-bold">{country.enquiry_count}</div>
             </div>
           ))}
         </div>
-        
       </CardHeader>
-     
     </Card>
   );
 };
@@ -114,14 +112,11 @@ const Home = () => {
     queryKey: ["dashboard"],
     queryFn: async () => {
       const token = localStorage.getItem("token");
-      const response = await fetch(
-        "https://adityaspice.com/app/public/api/panel-fetch-dashboard",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await fetch(`${BASE_URL}/api/panel-fetch-dashboard`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
       if (!response.ok) throw new Error("Failed to fetch dashboard data");
       return response.json();
     },
@@ -184,4 +179,4 @@ const Home = () => {
 
 export default Home;
 
-//sajid
+

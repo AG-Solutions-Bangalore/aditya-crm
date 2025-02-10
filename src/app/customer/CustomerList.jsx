@@ -329,4 +329,3 @@ const CustomerList = () => {
 
 export default CustomerList;
 
-//sajid

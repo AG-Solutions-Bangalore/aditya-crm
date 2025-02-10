@@ -29,6 +29,7 @@ import { getTodayDate } from "@/utils/currentDate";
 import { ProgressBar } from "@/components/spinner/ProgressBar";
 import CreateCustomer from "../customer/CreateCustomer";
 import CreateProduct from "../product/CreateProduct";
+import BASE_URL from "@/config/BaseUrl";
 
 // Keep your existing validation schemas...
 // [Previous validation schemas remain unchanged]
@@ -71,7 +72,7 @@ const fetchCustomers = async () => {
   if (!token) throw new Error("No authentication token found");
 
   const response = await fetch(
-    "https://adityaspice.com/app/public/api/panel-fetch-customer",
+     `${BASE_URL}/api/panel-fetch-customer`,
     {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -89,7 +90,7 @@ const fetchProducts = async () => {
   if (!token) throw new Error("No authentication token found");
 
   const response = await fetch(
-    "https://adityaspice.com/app/public/api/panel-fetch-product",
+     `${BASE_URL}/api/panel-fetch-product`,
     {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -107,7 +108,7 @@ const createEnquiry = async (data) => {
   if (!token) throw new Error("No authentication token found");
 
   const response = await fetch(
-    "https://adityaspice.com/app/public/api/panel-create-enquiry",
+     `${BASE_URL}/api/panel-create-enquiry`,
     {
       method: "POST",
       headers: {
