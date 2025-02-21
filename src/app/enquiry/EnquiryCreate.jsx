@@ -386,7 +386,7 @@ const EnquiryCreate = () => {
         enquirySub_moist_value: "",
         enquirySub_qnty: "",
         enquirySub_quoted_price: "",
-        enquirySub_final_price: "",
+        enquirySub_final_price: 0,
         enquirySub_p2b_blend: "",
       },
     ]);

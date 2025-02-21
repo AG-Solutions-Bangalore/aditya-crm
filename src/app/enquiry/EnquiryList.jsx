@@ -61,6 +61,7 @@ import { useNavigate } from "react-router-dom";
 import moment from "moment";
 import { useToast } from "@/hooks/use-toast";
 import { encryptId } from "@/utils/encyrption/Encyrption";
+import { EnquiriesDelete, EnquiriesEdit, EnquiriesEnquiryCreate, EnquiriesReplyFollowup, EnquiriesSampleCreate, EnquiriesTimeline, EnquiriesView } from "@/components/buttonIndex/ButtonComponents";
 const EnquiryList = () => {
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [deleteEnquiryId, setDeleteEnquiryId] = useState(null);
@@ -154,7 +155,7 @@ const EnquiryList = () => {
       header: "Date",
       cell: ({ row }) => {
         const date = row.getValue("enquiry_date");
-        return moment(date).format("DDD-MMM-YYYY");
+        return moment(date).format("DD-MMM-YYYY");
       },
     },
 
@@ -202,7 +203,7 @@ const EnquiryList = () => {
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button
+                  {/* <Button
                     variant="ghost"
                     size="icon"
                     onClick={() =>
@@ -210,7 +211,12 @@ const EnquiryList = () => {
                     }
                   >
                     <Eye className="h-4 w-4" />
-                  </Button>
+                  </Button> */}
+                  <EnquiriesView
+                   onClick={() =>
+                    navigate(`/view-enquiry/${encryptId(enquiryId)}`)
+                  }
+                  />
                 </TooltipTrigger>
                 <TooltipContent>View Enquiry</TooltipContent>
               </Tooltip>
@@ -218,7 +224,7 @@ const EnquiryList = () => {
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button
+                  {/* <Button
                     variant="ghost"
                     size="icon"
                     onClick={() =>
@@ -226,7 +232,13 @@ const EnquiryList = () => {
                     }
                   >
                     <History  className="h-4 w-4" />
-                  </Button>
+                  </Button> */}
+                  <EnquiriesTimeline
+                  onClick={() =>
+                    navigate(`/timeline-enquiry/${encryptId(enquiryId)}`)
+                  }
+                  
+                  />
                 </TooltipTrigger>
                 <TooltipContent>TimeLine</TooltipContent>
               </Tooltip>
@@ -237,7 +249,7 @@ const EnquiryList = () => {
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Button
+                    {/* <Button
                       variant="ghost"
                       size="icon"
                       onClick={() =>
@@ -245,7 +257,13 @@ const EnquiryList = () => {
                       }
                     >
                       <Edit className="h-4 w-4" />
-                    </Button>
+                    </Button> */}
+                    <EnquiriesEdit
+                    onClick={() =>
+                      navigate(`/edit-enquiry/${encryptId(enquiryId)}`)
+                    }
+                    
+                    />
                   </TooltipTrigger>
                   <TooltipContent>Edit Enquiry</TooltipContent>
                 </Tooltip>
@@ -255,7 +273,7 @@ const EnquiryList = () => {
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Button
+                    {/* <Button
                       variant="ghost"
                       size="icon"
                       onClick={() =>
@@ -263,7 +281,13 @@ const EnquiryList = () => {
                       }
                     >
                       <UserPen className="h-4 w-4" />
-                    </Button>
+                    </Button> */}
+                    <EnquiriesReplyFollowup
+                        onClick={() =>
+                          navigate(`/reply-edit-enquiry/${encryptId(enquiryId)}`)
+                        }
+                    
+                    />
                   </TooltipTrigger>
                   <TooltipContent>Reply Follow-Up</TooltipContent>
                 </Tooltip>
@@ -274,7 +298,7 @@ const EnquiryList = () => {
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Button
+                    {/* <Button
                       variant="ghost"
                       size="icon"
                       onClick={() => {
@@ -283,7 +307,14 @@ const EnquiryList = () => {
                       }}
                     >
                       <Trash className="h-4 w-4 text-red-500" />
-                    </Button>
+                    </Button> */}
+                    <EnquiriesDelete
+                     onClick={() => {
+                      setDeleteEnquiryId(enquiryId);
+                      setDeleteConfirmOpen(true);
+                    }}
+                    
+                    />
                   </TooltipTrigger>
                   <TooltipContent>Delete Enquiry</TooltipContent>
                 </Tooltip>
@@ -405,22 +436,32 @@ const EnquiryList = () => {
             </DropdownMenuContent>
           </DropdownMenu>
           {(userType === 2 || userType === 3 || userType === 1) && (
-            <Button
-              variant="default"
-              className="ml-2 bg-yellow-500 text-black hover:bg-yellow-100"
+            // <Button
+            //   variant="default"
+            //   className="ml-2 bg-yellow-500 text-black hover:bg-yellow-100"
+            //   onClick={() => navigate("/create-enquiries")}
+            // >
+            //   <SquarePlus className="h-4 w-4" /> Enquiry
+            // </Button>
+            <EnquiriesEnquiryCreate
+            className="ml-2 bg-yellow-500 text-black hover:bg-yellow-100"
               onClick={() => navigate("/create-enquiries")}
-            >
-              <SquarePlus className="h-4 w-4" /> Enquiry
-            </Button>
+            />
           )}
           {(userType === 2 || userType === 3) && (
-            <Button
-              variant="default"
-              className="ml-2 bg-yellow-500 text-black hover:bg-yellow-100"
-              onClick={() => navigate("/create-sample-enquiries")}
-            >
-              <SquarePlus className="h-4 w-4" /> Sample
-            </Button>
+            // <Button
+            //   variant="default"
+            //   className="ml-2 bg-yellow-500 text-black hover:bg-yellow-100"
+            //   onClick={() => navigate("/create-sample-enquiries")}
+            // >
+            //   <SquarePlus className="h-4 w-4" /> Sample
+            // </Button>
+            <EnquiriesSampleCreate
+            
+            className="ml-2 bg-yellow-500 text-black hover:bg-yellow-100"
+            onClick={() => navigate("/create-sample-enquiries")}
+            
+            />
           )}
         </div>
         {/* table  */}

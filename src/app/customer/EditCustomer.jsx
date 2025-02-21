@@ -29,6 +29,7 @@ import axios from "axios";
 import BASE_URL from "@/config/BaseUrl";
 import { Edit, Loader2 } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
+import { CustomerEdit } from "@/components/buttonIndex/ButtonComponents";
 
 const EditCustomer = ({ customerId }) => {
   const [open, setOpen] = useState(false);
@@ -151,7 +152,7 @@ const EditCustomer = ({ customerId }) => {
       <Tooltip>
         <TooltipTrigger asChild>
           <DialogTrigger asChild>
-            <Button 
+            {/* <Button 
               variant="ghost" 
               size="icon"
               className={`transition-all duration-200 ${isHovered ? 'bg-blue-50' : ''}`}
@@ -159,7 +160,12 @@ const EditCustomer = ({ customerId }) => {
               onMouseLeave={() => setIsHovered(false)}
             >
               <Edit className={`h-4 w-4 transition-all duration-200 ${isHovered ? 'text-blue-500' : ''}`} />
-            </Button>
+            </Button> */}
+            <CustomerEdit
+              onMouseEnter={() => setIsHovered(true)}
+              onMouseLeave={() => setIsHovered(false)}
+            
+            />
           </DialogTrigger>
         </TooltipTrigger>
         <TooltipContent>

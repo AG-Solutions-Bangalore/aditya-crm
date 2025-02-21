@@ -17,6 +17,7 @@ import BASE_URL from "@/config/BaseUrl";
 import { Loader2, SquarePlus } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "react-router-dom";
+import { CustomerCreate } from "@/components/buttonIndex/ButtonComponents";
 const CreateCustomer = () => {
   const [open, setOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -27,7 +28,7 @@ const CreateCustomer = () => {
     customer_short: "",
     customer_name: "",
     customer_country: "",
-    customer_port:"",
+    customer_port: "",
   });
 
   const handleInputChange = (e) => {
@@ -43,7 +44,7 @@ const CreateCustomer = () => {
       !formData.customer_short ||
       !formData.customer_name ||
       !formData.customer_country ||
-      !formData.customer_port 
+      !formData.customer_port
     ) {
       toast({
         title: "Error",
@@ -94,21 +95,24 @@ const CreateCustomer = () => {
       </Button> */}
 
         {pathname === "/customers" ? (
-          <Button
-            variant="default"
-            className="ml-2 bg-yellow-500 text-black hover:bg-yellow-100"
-          >
-            <SquarePlus className="h-4 w-4" /> Customer
-          </Button>
+          // <Button
+          //   variant="default"
+          //   className="ml-2 bg-yellow-500 text-black hover:bg-yellow-100"
+          // >
+          //   <SquarePlus className="h-4 w-4" /> Customer
+          // </Button>
+          <div>
+            <CustomerCreate className="ml-2 bg-yellow-500 text-black hover:bg-yellow-100" />
+          </div>
         ) : pathname === "/create-enquiries" ? (
           <p className="text-xs text-yellow-700 ml-2 mt-1 w-32 hover:text-red-800 cursor-pointer">
             Create Customer
           </p>
-        ) :pathname === "/create-sample-enquiries" ? (
+        ) : pathname === "/create-sample-enquiries" ? (
           <p className="text-xs text-yellow-700 ml-2 mt-1 w-32 hover:text-red-800 cursor-pointer">
             Create Customer
           </p>
-        ): null}
+        ) : null}
       </DialogTrigger>
 
       <DialogContent className="sm:max-w-md">

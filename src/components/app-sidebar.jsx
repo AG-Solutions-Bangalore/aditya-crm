@@ -27,14 +27,48 @@ import { ContextPanel } from "@/lib/ContextPanel";
 import { NavMainUpdate } from "./nav-main-update";
 import { NavMainReport } from "./nav-main-report";
 
+
+
+
+const isItemAllowed = (item, pageControl, userId) => {
+  const itemUrl = item.url?.replace(/^\//, "");
+  return pageControl.some((control) => 
+    control.page === item.title && 
+    control.url === itemUrl && 
+    control.userIds.includes(userId) && 
+    control.status === "Active"
+  );
+};
+
+
+const filterMenuItems = (items, pageControl, userId) => {
+  if (!items) return [];
+
+  return items.reduce((acc, item) => {
+    if (item.items) {
+      const filteredItems = filterMenuItems(item.items, pageControl, userId);
+      if (filteredItems.length > 0) {
+        acc.push({
+          ...item,
+          items: filteredItems,
+        });
+      }
+    } else if (isItemAllowed(item, pageControl, userId)) {
+      acc.push(item);
+    }
+    return acc;
+  }, []);
+};
+
 export function AppSidebar({ ...props }) {
   // const {emailL,nameL,userType} = React.useContext(ContextPanel)
   const nameL = localStorage.getItem("name");
   const emailL = localStorage.getItem("email");
   const userType = localStorage.getItem("userType");
   const pageControl = JSON.parse(localStorage.getItem("pageControl")) || [];
+  const userId = localStorage.getItem("id");
   const companyName = localStorage.getItem("company_name");
-  const data = {
+  const initialData = {
     user: {
       name: `${nameL}`,
       email: `${emailL}`,
@@ -130,9 +164,27 @@ export function AppSidebar({ ...props }) {
         url: "/report",
         icon: Map,
       },
+      {
+        name: "User Management",
+        url: "/userManagement",
+        icon: Map,
+      },
     ],
   };
-
+ const filteredProjects = filterMenuItems(initialData.projects.map(p => ({
+    title: p.name,
+    url: p.url
+  })), pageControl, userId).map(p => ({
+    name: p.title,
+    url: p.url,
+    icon: initialData.projects.find(orig => orig.name === p.title)?.icon || Frame
+  }));
+  const data = {
+    ...initialData,
+   
+    projects: filteredProjects,
+   
+  };
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>

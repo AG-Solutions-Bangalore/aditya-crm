@@ -29,6 +29,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { ProductsEdit } from '@/components/buttonIndex/ButtonComponents';
 
 const EditProduct = ({productId}) => {
     const [open, setOpen] = useState(false);
@@ -130,7 +131,7 @@ const EditProduct = ({productId}) => {
       <Tooltip>
         <TooltipTrigger asChild>
           <PopoverTrigger asChild>
-            <Button 
+            {/* <Button 
               variant="ghost" 
               size="icon"
               className={`transition-all duration-200 ${isHovered ? 'bg-blue-50' : ''}`}
@@ -138,7 +139,14 @@ const EditProduct = ({productId}) => {
               onMouseLeave={() => setIsHovered(false)}
             >
               <Edit className={`h-4 w-4 transition-all duration-200 ${isHovered ? 'text-blue-500' : ''}`} />
-            </Button>
+            </Button> */}
+            <div>
+            <ProductsEdit
+             onMouseEnter={() => setIsHovered(true)}
+             onMouseLeave={() => setIsHovered(false)}
+            
+            />
+            </div>
           </PopoverTrigger>
         </TooltipTrigger>
         <TooltipContent>
