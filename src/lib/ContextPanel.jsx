@@ -2,19 +2,18 @@ import { createContext, useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
 import BASE_URL from "@/config/BaseUrl";
-import { format } from "date-fns";
 
 export const ContextPanel = createContext();
 
 const AppProvider = ({ children }) => {
   const now = new Date();
-  const formattedDate = format(now, "EEEE, MMMM d, yyyy 'at' h:mm a");
-
   const [userType, setUserType] = useState(null);
   const [nameL, setNameL] = useState(null);
+  const token = localStorage.getItem("token");
   const [emailL, setEmailL] = useState(null);
   const [matchId, setMatchId] = useState(null);
-
+  const [isLoading, setIsLoading] = useState(false);
+  const [isError, setIsError] = useState(false);
 
   
   useEffect(() => {
@@ -31,7 +30,71 @@ const AppProvider = ({ children }) => {
   }, []);
 
 
- 
+  const fetchPagePermission = async () => {
+    setIsLoading(true);
+    setIsError(false);
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.get(
+        `${BASE_URL}/api/panel-fetch-usercontrol-new`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      // array in local storage
+      localStorage.setItem(
+        "pageControl",
+        JSON.stringify(response.data?.pagePermissions)
+      );
+    } catch (error) {
+      setIsError(true);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const fetchPermissions = async () => {
+    setIsLoading(true);
+    setIsError(false);
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.get(
+        `${BASE_URL}/api/panel-fetch-usercontrol`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      // Store the entire `usercontrol` array in localStorage
+      localStorage.setItem(
+        "buttonControl",
+        JSON.stringify(response.data?.buttonPermissions)
+      );
+    } catch (error) {
+      setIsError(true);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  const getStaticUsers = () => {
+    try {
+      const users = localStorage.getItem("allUsers");
+      return users ? JSON.parse(users) : [];
+    } catch (error) {
+      console.error("Error parsing allUsers from localStorage", error);
+      return [];
+    }
+  };
+
+  useEffect(() => {
+    if (token) {
+      getStaticUsers();
+      fetchPagePermission();
+      fetchPermissions();
+    }
+  }, []);
+
 
   return (
     <ContextPanel.Provider
@@ -41,8 +104,9 @@ const AppProvider = ({ children }) => {
         nameL,
         emailL,
         matchId,
-        formattedDate,
-     
+        fetchPagePermission,
+        getStaticUsers,
+        fetchPermissions,
       }}
     >
       {children}

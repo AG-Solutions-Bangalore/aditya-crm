@@ -18,6 +18,10 @@ import SampleEnquiryCreate from "./app/enquiry/sampleEnquiry/SampleEnquiryCreate
 import EnquiryTimeline from "./app/enquiry/timeline/EnquiryTimeline";
 import ClaudeTimeline from "./app/enquiry/timeline/ClaudeTimeline";
 
+import UserPage from "./app/userManagement/UserPage";
+import ManagementDashboard from "./app/userManagement/ManagementDashboard";
+import CreatePage from "./app/userManagement/CreatePage";
+import CreateButton from "./app/userManagement/CreateButton";
 const queryClient = new QueryClient();
 
 function App() {
@@ -61,6 +65,14 @@ function App() {
           />
           {/* report  */}
           <Route path="/report" element={<ReportForm />} />
+           {/* user management  */}
+           <Route path="/userManagement" element={<UserPage />} />
+                    <Route
+                      path="/management-dashboard/:id"
+                      element={<ManagementDashboard />}
+                    />
+                    <Route path="/page-management" element={<CreatePage />} />
+                    <Route path="/button-management" element={<CreateButton />} />
         </Routes>
       </QueryClientProvider>
     </>

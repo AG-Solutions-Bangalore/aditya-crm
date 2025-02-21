@@ -22,6 +22,7 @@ export default function LoginAuth() {
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState("");
+   const { fetchPagePermission, fetchPermissions } = useContext(ContextPanel);
   const navigate = useNavigate();
   const { toast } = useToast();
   const loadingMessages = [
@@ -60,12 +61,20 @@ export default function LoginAuth() {
       const res = await axios.post(`${BASE_URL}/api/panel-login`, formData);
 
       if (res.status == 200) {
+       
+        if (!res.data.UserInfo || !res.data.UserInfo.token) {
+          console.warn("⚠️ Login failed: Token missing in response");
+          toast.error("Login Failed: No token received.");
+          setIsLoading(false);
+          return;
+        }
         const token = res.data.UserInfo?.token;
-
+        const { UserInfo, userN,company_detils } = res.data;
         if (token) {
           // Store user information in localStorage
           localStorage.setItem("token", token);
           localStorage.setItem("id", res.data.UserInfo.user.id);
+          localStorage.setItem("allUsers", JSON.stringify(userN));
           localStorage.setItem("companyID", res.data.UserInfo.user.company_id);
           localStorage.setItem("branchId", res.data.UserInfo.user.branch_id);
           localStorage.setItem("name", res.data.UserInfo.user.name);
@@ -73,7 +82,8 @@ export default function LoginAuth() {
           localStorage.setItem("email", res.data.UserInfo.user.email);
           localStorage.setItem("userType", res.data.UserInfo.user.user_type);
           localStorage.setItem("company_name", res.data.company_detils.company_name);
-
+          await fetchPermissions();
+          await fetchPagePermission();
           // Show success toast
           toast({
             title: "Login Successful",
